@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GenVoice - Gemini TTS</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <!-- React & Babel -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Framer Motion (UMD) -->
+    <script src="https://unpkg.com/framer-motion@10.16.4/dist/framer-motion.js"></script>
+
+    <style>
+        /* Custom Styles from index.css */
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            min-h-screen;
+            font-family: "Inter", "Noto Sans Bengali", ui-sans-serif, system-ui, sans-serif;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+        }
+        
+        .gradient-text {
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            background-image: linear-gradient(to right, #22d3ee, #818cf8);
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); }
+        ::-webkit-scrollbar-thumb { background: rgba(56,189,248,0.3); border-radius: 3px; }
+
+        /* Range Input Styling */
+        input[type="range"] {
+            -webkit-appearance: none;
+            background: transparent;
+        }
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: rgba(255, 255, 255, 0.1);
+            height: 6px;
+            border-radius: 3px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 16px;
+            width: 16px;
+            background: #06b6d4;
+            border-radius: 50%;
+            margin-top: -5px;
+            cursor: pointer;
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.5);
+        }
+
+        /* Perspective for 3D effects */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo } = React;
+        const { motion, AnimatePresence } = window.Motion;
+
+        // --- Constants ---
+        const VOICES = [
+            { name: 'Zephyr', style: 'Bright', cat: 'bright' },
+            { name: 'Puck', style: 'Cheerful', cat: 'bright' },
+            { name: 'Charon', style: 'Informative', cat: 'calm' },
+            { name: 'Kore', style: 'Firm', cat: 'calm' },
+            { name: 'Fenrir', style: 'Excitable', cat: 'bright' },
+            { name: 'Leda', style: 'Youthful', cat: 'bright' },
+            { name: 'Orus', style: 'Corporate', cat: 'calm' },
+            { name: 'Aoede', style: 'Breezy', cat: 'calm' },
+            { name: 'Callirrhoe', style: 'Easygoing', cat: 'calm' },
+            { name: 'Autonoe', style: 'Bright', cat: 'bright' },
+            { name: 'Enceladus', style: 'Breathy', cat: 'calm' },
+            { name: 'Iapetus', style: 'Clear', cat: 'calm' },
+            { name: 'Umbriel', style: 'Easygoing', cat: 'calm' },
+            { name: 'Algieba', style: 'Smooth', cat: 'calm' },
+            { name: 'Despina', style: 'Smooth', cat: 'calm' },
+            { name: 'Erinome', style: 'Clear', cat: 'calm' },
+            { name: 'Algenib', style: 'Gravelly', cat: 'calm' },
+            { name: 'Rasalgethi', style: 'Informative', cat: 'calm' },
+            { name: 'Laomedeia', style: 'Cheerful', cat: 'bright' },
+            { name: 'Achernar', style: 'Soft', cat: 'calm' },
+            { name: 'Alnilam', style: 'Firm', cat: 'calm' },
+            { name: 'Schedar', style: 'Even', cat: 'calm' },
+            { name: 'Gacrux', style: 'Mature', cat: 'calm' },
+            { name: 'Pulcherrima', style: 'Forward', cat: 'bright' },
+            { name: 'Achird', style: 'Friendly', cat: 'bright' },
+            { name: 'Zubenelgenubi', style: 'Casual', cat: 'calm' },
+            { name: 'Vindemiatrix', style: 'Gentle', cat: 'calm' },
+            { name: 'Sadachbia', style: 'Lively', cat: 'bright' },
+            { name: 'Sadaltager', style: 'Knowledgeable', cat: 'calm' },
+            { name: 'Sulafat', style: 'Raised', cat: 'bright' }
+        ];
+
+        const EMOTIONS = [
+            { id: 'neutral', name: 'Neutral', icon: '😐', color: 'slate', desc: 'Natural', prompt: 'Speak naturally' },
+            { id: 'happy', name: 'Happy', icon: '😊', color: 'yellow', desc: 'Upbeat', prompt: 'Speak cheerfully' },
+            { id: 'sad', name: 'Sad', icon: '😢', color: 'blue', desc: 'Slow', prompt: 'Speak sadly' },
+            { id: 'angry', name: 'Angry', icon: '😠', color: 'red', desc: 'Intense', prompt: 'Speak angrily' },
+            { id: 'excited', name: 'Excited', icon: '🤩', color: 'pink', desc: 'Energetic', prompt: 'Speak excitedly' },
+            { id: 'calm', name: 'Calm', icon: '😌', color: 'emerald', desc: 'Soothing', prompt: 'Speak calmly' },
+            { id: 'fearful', name: 'Fearful', icon: '😨', color: 'purple', desc: 'Tense', prompt: 'Speak fearfully' },
+            { id: 'surprised', name: 'Surprised', icon: '😲', color: 'orange', desc: 'Shocked', prompt: 'Speak with surprise' },
+            { id: 'whisper', name: 'Whisper', icon: '🤫', color: 'cyan', desc: 'Quiet', prompt: 'Speak in a whisper' },
+            { id: 'shout', name: 'Shout', icon: '📢', color: 'rose', desc: 'Loud', prompt: 'Speak loudly and shouting' },
+            { id: 'cry', name: 'Cry', icon: '😭', color: 'indigo', desc: 'Sobbing', prompt: 'Speak as if crying' },
+            { id: 'laugh', name: 'Laugh', icon: '😂', color: 'amber', desc: 'Giggling', prompt: 'Speak with laughter' },
+            { id: 'romantic', name: 'Romantic', icon: '❤️', color: 'red', desc: 'Loving', prompt: 'Speak romantically' },
+            { id: 'mysterious', name: 'Mystery', icon: '🕵️', color: 'violet', desc: 'Secretive', prompt: 'Speak mysteriously' },
+            { id: 'sarcastic', name: 'Sarcastic', icon: '🙄', color: 'lime', desc: 'Ironical', prompt: 'Speak sarcastically' },
+            { id: 'serious', name: 'Serious', icon: '🧐', color: 'zinc', desc: 'Formal', prompt: 'Speak seriously' },
+            { id: 'friendly', name: 'Friendly', icon: '👋', color: 'teal', desc: 'Warm', prompt: 'Speak friendly' },
+            { id: 'professional', name: 'Pro', icon: '💼', color: 'blue', desc: 'Business', prompt: 'Speak professionally' },
+            { id: 'dramatic', name: 'Dramatic', icon: '🎭', color: 'fuchsia', desc: 'Theatrical', prompt: 'Speak dramatically' },
+            { id: 'tired', name: 'Tired', icon: '😴', color: 'stone', desc: 'Sleepy', prompt: 'Speak tiredly' },
+            { id: 'energetic', name: 'Energy', icon: '⚡', color: 'yellow', desc: 'Fast', prompt: 'Speak energetically' },
+            { id: 'confident', name: 'Confident', icon: '😎', color: 'sky', desc: 'Bold', prompt: 'Speak confidently' },
+            { id: 'shy', name: 'Shy', icon: '🥺', color: 'rose', desc: 'Quiet', prompt: 'Speak shyly' },
+            { id: 'hopeful', name: 'Hopeful', icon: '✨', color: 'amber', desc: 'Positive', prompt: 'Speak hopefully' },
+            { id: 'bored', name: 'Bored', icon: '😑', color: 'neutral', desc: 'Dull', prompt: 'Speak boredly' },
+            { id: 'anxious', name: 'Anxious', icon: '😰', color: 'orange', desc: 'Nervous', prompt: 'Speak anxiously' },
+            { id: 'proud', name: 'Proud', icon: '🦁', color: 'gold', desc: 'Grand', prompt: 'Speak proudly' },
+            { id: 'guilty', name: 'Guilty', icon: '😔', color: 'slate', desc: 'Regretful', prompt: 'Speak guiltily' },
+            { id: 'jealous', name: 'Jealous', icon: '😒', color: 'green', desc: 'Envious', prompt: 'Speak jealously' },
+            { id: 'lonely', name: 'Lonely', icon: '🏚️', color: 'blue', desc: 'Isolated', prompt: 'Speak lonely' },
+            { id: 'grateful', name: 'Grateful', icon: '🙏', color: 'emerald', desc: 'Thankful', prompt: 'Speak gratefully' },
+            { id: 'curious', name: 'Curious', icon: '🤔', color: 'cyan', desc: 'Inquisitive', prompt: 'Speak curiously' },
+            { id: 'determined', name: 'Firm', icon: '😤', color: 'red', desc: 'Strong', prompt: 'Speak determinedly' },
+            { id: 'relaxed', name: 'Relaxed', icon: '🏖️', color: 'teal', desc: 'Chill', prompt: 'Speak relaxed' },
+            { id: 'worried', name: 'Worried', icon: '😟', color: 'yellow', desc: 'Uneasy', prompt: 'Speak worriedly' },
+            { id: 'disappointed', name: 'Sad', icon: '😞', color: 'slate', desc: 'Let down', prompt: 'Speak disappointedly' },
+            { id: 'inspired', name: 'Inspired', icon: '💡', color: 'amber', desc: 'Creative', prompt: 'Speak inspired' },
+            { id: 'silly', name: 'Silly', icon: '🤪', color: 'pink', desc: 'Funny', prompt: 'Speak sillily' },
+            { id: 'grumpy', name: 'Grumpy', icon: '😡', color: 'orange', desc: 'Crabby', prompt: 'Speak grumpily' },
+            { id: 'peaceful', name: 'Peace', icon: '🕊️', color: 'white', desc: 'Serene', prompt: 'Speak peacefully' },
+            { id: 'nostalgic', name: 'Old', icon: '📻', color: 'stone', desc: 'Past', prompt: 'Speak nostalgically' },
+            { id: 'brave', name: 'Brave', icon: '🛡️', color: 'red', desc: 'Fearless', prompt: 'Speak bravely' },
+            { id: 'kind', name: 'Kind', icon: '🤝', color: 'emerald', desc: 'Gentle', prompt: 'Speak kindly' },
+            { id: 'stern', name: 'Stern', icon: '🤨', color: 'zinc', desc: 'Strict', prompt: 'Speak sternly' },
+            { id: 'playful', name: 'Play', icon: '🎈', color: 'pink', desc: 'Fun', prompt: 'Speak playfully' },
+            { id: 'elegant', name: 'Elegant', icon: '💎', color: 'indigo', desc: 'Fancy', prompt: 'Speak elegantly' },
+            { id: 'robotic', name: 'Robot', icon: '🤖', color: 'slate', desc: 'Flat', prompt: 'Speak robotically' },
+            { id: 'ghostly', name: 'Ghost', icon: '👻', color: 'white', desc: 'Eerie', prompt: 'Speak ghostly' },
+            { id: 'heroic', name: 'Hero', icon: '🦸', color: 'blue', desc: 'Epic', prompt: 'Speak heroically' },
+            { id: 'villainous', name: 'Evil', icon: '😈', color: 'purple', desc: 'Dark', prompt: 'Speak villainously' }
+        ];
+
+        // --- Icon Component ---
+        const Icon = ({ name, className }) => {
+            const iconRef = useRef(null);
+            useEffect(() => {
+                if (iconRef.current) {
+                    iconRef.current.innerHTML = '';
+                    const icon = lucide.createIcons({
+                        icons: { [name]: lucide[name] },
+                        nameAttr: 'data-lucide',
+                        attrs: { class: className }
+                    });
+                }
+            }, [name, className]);
+            return <span ref={iconRef} data-lucide={name}></span>;
+        };
+
+        // --- Helper: RIFF WAV Creation ---
+        function createWavBlob(pcmData, sampleRate, channels, bitsPerSample) {
+            const headerSize = 44;
+            const dataSize = pcmData.length;
+            const buffer = new ArrayBuffer(headerSize + dataSize);
+            const view = new DataView(buffer);
+            
+            const writeString = (view, offset, string) => {
+                for (let i = 0; i < string.length; i++) {
+                    view.setUint8(offset + i, string.charCodeAt(i));
+                }
+            };
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true);
+            view.setUint16(22, channels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, sampleRate * channels * bitsPerSample / 8, true);
+            view.setUint16(32, channels * bitsPerSample / 8, true);
+            view.setUint16(34, bitsPerSample, true);
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+            
+            const bytes = new Uint8Array(buffer, 44);
+            bytes.set(pcmData);
+            
+            return new Blob([buffer], { type: 'audio/wav' });
+        }
+
+        // --- Main App ---
+        function App() {
+            const [apiKeys, setApiKeys] = useState(['']);
+            const [auphonicToken, setAuphonicToken] = useState('');
+            const [isAuphonicEnabled, setIsAuphonicEnabled] = useState(true);
+            const [activeKeyIndex, setActiveKeyIndex] = useState(0);
+            const [showKeyManager, setShowKeyManager] = useState(false);
+            const [text, setText] = useState('');
+            const [selVoice, setSelVoice] = useState('Kore');
+            const [selEmotion, setSelEmotion] = useState('neutral');
+            const [speed, setSpeed] = useState(1.0);
+            const [pitch, setPitch] = useState(0);
+            const [volumeBoost, setVolumeBoost] = useState(1.0);
+            const [clarity, setClarity] = useState(50);
+            const [warmth, setWarmth] = useState(50);
+            const [isGenerating, setIsGenerating] = useState(false);
+            const [audioUrl, setAudioUrl] = useState(null);
+            const [history, setHistory] = useState([]);
+            const [voiceFilter, setVoiceFilter] = useState('all');
+            const [statusMsg, setStatusMsg] = useState(null);
+            const [generationStep, setGenerationStep] = useState(0);
+            const [customEmotion, setCustomEmotion] = useState('');
+            const [newKeyInput, setNewKeyInput] = useState('');
+
+            const audioRef = useRef(null);
+
+            // Auto-play when audioUrl changes
+            useEffect(() => {
+                if (audioUrl && audioRef.current) {
+                    audioRef.current.play().catch(e => console.log("Autoplay blocked", e));
+                }
+            }, [audioUrl]);
+
+            // Load saved data
+            useEffect(() => {
+                const savedKeys = localStorage.getItem('genvoice_api_keys');
+                if (savedKeys) {
+                    try {
+                        const parsed = JSON.parse(savedKeys);
+                        if (Array.isArray(parsed) && parsed.length > 0) setApiKeys(parsed);
+                    } catch (e) {}
+                }
+
+                const savedAuphonicToken = localStorage.getItem('genvoice_auphonic_token');
+                if (savedAuphonicToken) setAuphonicToken(savedAuphonicToken);
+
+                const savedAuphonicEnabled = localStorage.getItem('genvoice_auphonic_enabled');
+                if (savedAuphonicEnabled !== null) setIsAuphonicEnabled(savedAuphonicEnabled === 'true');
+
+                const savedHistory = localStorage.getItem('genvoice_history');
+                if (savedHistory) {
+                    try { setHistory(JSON.parse(savedHistory)); } catch (e) {}
+                }
+            }, []);
+
+            useEffect(() => {
+                localStorage.setItem('genvoice_history', JSON.stringify(history.slice(0, 20)));
+            }, [history]);
+
+            useEffect(() => {
+                localStorage.setItem('genvoice_api_keys', JSON.stringify(apiKeys));
+            }, [apiKeys]);
+
+            useEffect(() => {
+                localStorage.setItem('genvoice_auphonic_token', auphonicToken);
+            }, [auphonicToken]);
+
+            useEffect(() => {
+                localStorage.setItem('genvoice_auphonic_enabled', isAuphonicEnabled.toString());
+            }, [isAuphonicEnabled]);
+
+            const showStatus = (text, type = 'info') => {
+                setStatusMsg({ text, type });
+                setTimeout(() => setStatusMsg(null), 3000);
+            };
+
+            const handleEmotionChange = (id) => {
+                setSelEmotion(id);
+                const presets = {
+                    neutral: { s: 1.0, p: 0 }, happy: { s: 1.1, p: 2 }, sad: { s: 0.8, p: -3 },
+                    angry: { s: 1.2, p: 4 }, excited: { s: 1.3, p: 3 }, calm: { s: 0.9, p: -2 }
+                };
+                const preset = presets[id];
+                if (preset) { setSpeed(preset.s); setPitch(preset.p); }
+            };
+
+            const getValidKey = () => {
+                const validKeys = apiKeys.filter(k => k.trim());
+                return validKeys.length > 0 ? validKeys[activeKeyIndex % validKeys.length] : null;
+            };
+
+            const processWithAuphonic = async (wavBlob) => {
+                if (!isAuphonicEnabled || !auphonicToken) return wavBlob;
+                try {
+                    setGenerationStep(6);
+                    const createResponse = await fetch('https://auphonic.com/api/productions.json', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${auphonicToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            metadata: { title: `GenVoice_${Date.now()}` },
+                            algorithms: { denoise: true, normloudness: true, dynamic_range_compressor: true, highpass_filter: true },
+                            output_files: [{ format: 'wav' }]
+                        })
+                    });
+                    const createData = await createResponse.json();
+                    const uuid = createData.data.uuid;
+
+                    const formData = new FormData();
+                    formData.append('input_file', wavBlob, 'input.wav');
+                    await fetch(`https://auphonic.com/api/production/${uuid}/upload.json`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${auphonicToken}` },
+                        body: formData
+                    });
+
+                    await fetch(`https://auphonic.com/api/production/${uuid}/start.json`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${auphonicToken}` }
+                    });
+
+                    let status = 'started';
+                    let resultUrl = '';
+                    while (status !== 'done' && status !== 'error') {
+                        await new Promise(r => setTimeout(r, 3000));
+                        const res = await fetch(`https://auphonic.com/api/production/${uuid}.json`, {
+                            headers: { 'Authorization': `Bearer ${auphonicToken}` }
+                        });
+                        const data = await res.json();
+                        status = data.data.status_string.toLowerCase();
+                        if (status === 'done') resultUrl = data.data.output_files[0].download_url;
+                        if (status === 'error') throw new Error('Auphonic error');
+                    }
+
+                    const downloadRes = await fetch(resultUrl, { headers: { 'Authorization': `Bearer ${auphonicToken}` } });
+                    return await downloadRes.blob();
+                } catch (err) {
+                    showStatus('Auphonic failed, using original', 'error');
+                    return wavBlob;
+                }
+            };
+
+            const handleGenerate = async () => {
+                if (!text.trim()) return showStatus('Please enter some text', 'error');
+                const key = getValidKey();
+                if (!key) return showStatus('Please add API Key in Settings', 'error');
+
+                setIsGenerating(true);
+                setGenerationStep(1);
+
+                const attemptSpeech = async (key, retryCount = 0) => {
+                    try {
+                        const emotion = EMOTIONS.find(e => e.id === selEmotion);
+                        let prompt = customEmotion.trim() ? `Speak with a ${customEmotion} tone` : (emotion?.prompt || 'Speak naturally');
+                        prompt += `: ${text}`;
+
+                        setGenerationStep(3);
+                        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${key}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                contents: [{ parts: [{ text: prompt }] }],
+                                generationConfig: {
+                                    responseModalities: ["AUDIO"],
+                                    speechConfig: {
+                                        voiceConfig: {
+                                            prebuiltVoiceConfig: { voiceName: selVoice }
+                                        }
+                                    }
+                                }
+                            })
+                        });
+
+                        const data = await response.json();
+                        if (data.error) throw new Error(data.error.message);
+                        return data.candidates[0].content.parts[0].inlineData.data;
+                    } catch (err) {
+                        const maxRetries = apiKeys.filter(k => k.trim()).length;
+                        if (retryCount < maxRetries - 1) {
+                            const { key: nextKey, index } = rotateKey();
+                            if (nextKey) {
+                                showStatus(`Retrying with API Key #${index + 1}...`, 'info');
+                                await new Promise(r => setTimeout(r, 1000));
+                                return attemptSpeech(nextKey, retryCount + 1);
+                            }
+                        }
+                        throw err;
+                    }
+                };
+
+                try {
+                    const base64Audio = await attemptSpeech(key);
+                    const binaryString = atob(base64Audio);
+                    const bytes = new Uint8Array(binaryString.length);
+                    for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
+
+                    setGenerationStep(4);
+                    let finalBlob = createWavBlob(bytes, 24000, 1, 16);
+
+                    if (isAuphonicEnabled && auphonicToken) {
+                        finalBlob = await processWithAuphonic(finalBlob);
+                    }
+
+                    const url = URL.createObjectURL(finalBlob);
+                    setAudioUrl(url);
+
+                    const newItem = {
+                        id: Date.now(),
+                        text: text.substring(0, 50) + (text.length > 50 ? '...' : ''),
+                        voice: selVoice,
+                        emotion: customEmotion || emotion.name,
+                        color: emotion.color,
+                        time: new Date().toLocaleTimeString(),
+                        audioUrl: url
+                    };
+                    setHistory([newItem, ...history]);
+                    showStatus('Speech generated!', 'success');
+                } catch (err) {
+                    showStatus(err.message, 'error');
+                } finally {
+                    setIsGenerating(false);
+                }
+            };
+
+            const filteredVoices = VOICES.filter(v => voiceFilter === 'all' || v.cat === voiceFilter);
+
+            return (
+                <div className="p-4 md:p-8 max-w-6xl mx-auto">
+                    <header className="flex items-center justify-between mb-8">
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                                <Icon name="Activity" className="text-white w-7 h-7" />
+                            </div>
+                            <div>
+                                <h1 className="text-3xl font-bold gradient-text">GenVoice</h1>
+                                <p className="text-sm text-slate-400 font-medium">AI Neural Voice Engine</p>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button onClick={() => setShowKeyManager(true)} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white">
+                                <Icon name="Settings2" className="w-4 h-4" />
+                                <span className="text-xs font-bold">Settings</span>
+                            </button>
+                        </div>
+                    </header>
+
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div className="lg:col-span-2 space-y-6">
+                            <section className="glass-panel p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                        <Icon name="Volume2" className="w-4 h-4 text-cyan-400" />
+                                        Text to Speech
+                                    </label>
+                                    <button onClick={() => setText('')} className="p-2 rounded-lg bg-white/5 text-slate-400"><Icon name="Trash2" className="w-4 h-4" /></button>
+                                </div>
+                                <textarea value={text} onChange={e => setText(e.target.value)} rows={8} placeholder="Type or paste text..." className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 resize-none"></textarea>
+                            </section>
+
+                            <section className="glass-panel p-6">
+                                <label className="text-sm font-semibold text-slate-300 mb-4 block">Select Emotion</label>
+                                <div className="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-10 gap-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {EMOTIONS.map(e => (
+                                        <button key={e.id} onClick={() => handleEmotionChange(e.id)} className={`flex flex-col items-center p-2 rounded-lg border transition-all ${selEmotion === e.id ? 'bg-cyan-500/10 border-cyan-500/50' : 'bg-white/5 border-transparent'}`}>
+                                            <span className="text-xl mb-1">{e.icon}</span>
+                                            <span className="text-[9px] font-bold text-slate-400 truncate w-full text-center">{e.name}</span>
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section className="glass-panel p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className="text-sm font-semibold text-slate-300">Voice Selection</label>
+                                    <div className="flex gap-2">
+                                        {['all', 'bright', 'calm'].map(f => (
+                                            <button key={f} onClick={() => setVoiceFilter(f)} className={`px-2 py-1 rounded text-[10px] font-bold uppercase ${voiceFilter === f ? 'bg-cyan-500 text-white' : 'text-slate-500'}`}>{f}</button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {filteredVoices.map(v => (
+                                        <button key={v.name} onClick={() => setSelVoice(v.name)} className={`p-3 rounded-xl border transition-all ${selVoice === v.name ? 'bg-indigo-600 border-indigo-400' : 'bg-white/5 border-white/10'}`}>
+                                            <div className="text-xs font-bold">{v.name}</div>
+                                            <div className="text-[8px] opacity-60">{v.style}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+
+                            <section className="glass-panel p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                        <Icon name="Settings2" className="w-4 h-4 text-emerald-400" />
+                                        Audio Processing
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setIsAuphonicEnabled(!isAuphonicEnabled)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${isAuphonicEnabled ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400' : 'bg-white/5 border-white/10 text-slate-400'}`}>
+                                            <Icon name="Waves" className="w-4 h-4" />
+                                            <span className="text-[10px] font-bold uppercase">{isAuphonicEnabled ? 'Auphonic ON' : 'Auphonic OFF'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <button onClick={handleGenerate} disabled={isGenerating} className="w-full py-5 rounded-2xl font-bold text-lg bg-gradient-to-r from-cyan-500 to-indigo-600 shadow-xl flex items-center justify-center gap-3 disabled:opacity-50">
+                                {isGenerating ? <Icon name="Loader2" className="w-6 h-6 animate-spin" /> : <Icon name="Wand2" className="w-6 h-6" />}
+                                {isGenerating ? 'Synthesizing...' : 'Generate Speech'}
+                            </button>
+                        </div>
+
+                        <div className="space-y-6">
+                            {audioUrl && (
+                                <section className="glass-panel p-6 sticky top-8">
+                                    <h3 className="text-xs font-bold text-slate-400 mb-4 uppercase tracking-widest">Live Preview</h3>
+                                    <div className="bg-black/40 p-4 rounded-xl border border-white/10 mb-4">
+                                        <div className="text-xs font-bold mb-2">{selVoice} • {selEmotion}</div>
+                                        <audio ref={audioRef} src={audioUrl} controls className="w-full h-8 filter invert opacity-80" />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <a href={audioUrl} download="speech.wav" className="flex items-center justify-center gap-2 py-2 rounded-lg bg-white/5 text-[10px] font-bold uppercase"><Icon name="Download" className="w-3 h-3" /> Download</a>
+                                        <button onClick={() => navigator.share({title: 'GenVoice', url: audioUrl})} className="flex items-center justify-center gap-2 py-2 rounded-lg bg-white/5 text-[10px] font-bold uppercase"><Icon name="Share2" className="w-3 h-3" /> Share</button>
+                                    </div>
+                                </section>
+                            )}
+
+                            <section className="glass-panel p-6">
+                                <h3 className="text-sm font-semibold mb-4 flex items-center gap-2"><Icon name="History" className="w-4 h-4 text-indigo-400" /> History</h3>
+                                <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+                                    {history.map(item => (
+                                        <button key={item.id} onClick={() => { audioRef.current.src = item.audioUrl; audioRef.current.play(); }} className="w-full text-left p-3 rounded-xl bg-white/5 border border-white/5 hover:border-cyan-500/30">
+                                            <div className="flex justify-between text-[9px] mb-1"><span className="font-bold uppercase">{item.emotion}</span><span>{item.time}</span></div>
+                                            <div className="text-[10px] font-bold text-indigo-400">{item.voice}</div>
+                                            <div className="text-[10px] text-slate-400 truncate">{item.text}</div>
+                                        </button>
+                                    ))}
+                                </div>
+                            </section>
+                        </div>
+                    </div>
+
+                    {showKeyManager && (
+                        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-start justify-center z-[200] p-4 overflow-y-auto">
+                            <div className="bg-slate-900 border border-white/10 max-w-md w-full rounded-3xl p-6 my-auto">
+                                <div className="flex justify-between items-center mb-6">
+                                    <h2 className="text-xl font-bold">Settings</h2>
+                                    <button onClick={() => setShowKeyManager(false)}><Icon name="X" className="w-6 h-6" /></button>
+                                </div>
+                                
+                                <div className="mb-6">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Gemini API Keys</label>
+                                    <input type="password" value={newKeyInput} onChange={e => setNewKeyInput(e.target.value)} placeholder="Enter Gemini API Key..." className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm mb-2" />
+                                    <button onClick={() => { if(newKeyInput) { setApiKeys([...apiKeys.filter(k=>k), newKeyInput]); setNewKeyInput(''); showStatus('Key added!', 'success'); }}} className="w-full bg-emerald-500 text-black font-bold py-3 rounded-xl mb-4">Add Key</button>
+                                    <div className="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+                                        {apiKeys.filter(k=>k).map((k, i) => (
+                                            <div key={i} className="flex justify-between items-center bg-white/5 p-3 rounded-xl">
+                                                <span className="text-[10px] font-mono opacity-50">{k.substring(0, 10)}...</span>
+                                                <button onClick={() => setApiKeys(apiKeys.filter((_, idx) => idx !== i))} className="text-rose-500"><Icon name="Trash2" className="w-4 h-4" /></button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="mb-6">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Auphonic API Token</label>
+                                    <input type="password" value={auphonicToken} onChange={e => setAuphonicToken(e.target.value)} placeholder="Enter Auphonic Access Token..." className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm mb-2" />
+                                    <p className="text-[9px] text-slate-500">Get token from <a href="https://auphonic.com/api/" target="_blank" className="text-cyan-400">auphonic.com/api/</a></p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {statusMsg && (
+                        <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full text-xs font-bold shadow-2xl z-50 flex items-center gap-2 border ${statusMsg.type === 'error' ? 'bg-rose-500/20 border-rose-500/50 text-rose-400' : 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'}`}>
+                            <Icon name={statusMsg.type === 'error' ? 'AlertTriangle' : 'CheckCircle2'} className="w-4 h-4" />
+                            {statusMsg.text}
+                        </div>
+                    )}
+
+                    {isGenerating && (
+                        <div className="fixed inset-0 bg-black/80 backdrop-blur-xl flex items-center justify-center z-[300]">
+                            <div className="text-center">
+                                <Icon name="Loader2" className="w-12 h-12 animate-spin text-cyan-400 mx-auto mb-4" />
+                                <p className="text-sm font-bold">Synthesizing Voice...</p>
+                                <p className="text-[10px] text-slate-500 mt-2">Step {generationStep} of {isAuphonicEnabled ? 6 : 5}</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>

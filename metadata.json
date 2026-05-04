@@ -1,0 +1,5 @@
+{
+  "name": "GenVoice - Gemini TTS",
+  "description": "An emotional Text-to-Speech application powered by Gemini 2.5 Flash TTS.",
+  "requestFramePermissions": []
+}
