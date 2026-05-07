@@ -12,12 +12,54 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
+        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
-          name: 'GenVoice - Gemini TTS',
+          name: 'GenVoice - Neural TTS',
           short_name: 'GenVoice',
-          description: 'Emotional Text-to-Speech powered by Gemini 2.5',
-          theme_color: '#06b6d4',
+          description: 'Emotional Text-to-Speech powered by Gemini 2.5 Flash',
+          theme_color: '#6366f1',
+          background_color: '#0a0a0a',
           display: 'standalone',
+          display_override: ['window-controls-overlay', 'minimal-ui'],
+          orientation: 'portrait',
+          categories: ['utilities', 'productivity', 'multimedia'],
+          icons: [
+            {
+              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
+              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              sizes: '512x512',
+              type: 'image/png'
+            },
+            {
+              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              sizes: '512x512',
+              type: 'image/png',
+              purpose: 'maskable'
+            }
+          ]
+        },
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg}'],
+          runtimeCaching: [
+            {
+              urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts-cache',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 365 // <== 365 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
+            }
+          ]
         }
       })
     ],

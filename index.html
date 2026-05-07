@@ -5,32 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>GenVoice - Gemini TTS</title>
     <meta name="theme-color" content="#06b6d4">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GenVoice">
+    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3659/3659898.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   </head>
-  <body>
-    <div id="root">
-      <div id="loading-screen" style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #0f172a; color: #38bdf8; font-family: sans-serif; flex-direction: column;">
-        <div style="width: 40px; height: 40px; border: 4px solid #1e293b; border-top: 4px solid #38bdf8; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px;"></div>
-        <p id="status-text">Loading GenVoice Engine...</p>
-        <div id="error-display" style="display: none; margin-top: 20px; padding: 15px; background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #f87171; border-radius: 8px; max-width: 80%; font-size: 12px; font-family: monospace; text-align: center;"></div>
+  <body style="background-color: #0a0a0a; margin: 0; overflow: hidden;">
+    <div id="loading-screen" style="position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; items-center: center; justify-content: center; background-color: #0a0a0a; transition: opacity 0.5s ease-in-out; align-items: center; font-family: 'Inter', sans-serif;">
+      <div style="position: relative; width: 96px; height: 96px; margin-bottom: 32px;">
+        <div style="position: absolute; inset: 0; border-radius: 9999px; border: 4px solid rgba(99, 102, 241, 0.1);"></div>
+        <div id="spinner" style="position: absolute; inset: 0; border-radius: 9999px; border: 4px solid transparent; border-top-color: #6366f1; border-right-color: #22d3ee; animation: spin 0.8s linear infinite;"></div>
+        <div style="position: absolute; inset: 16px; border-radius: 9999px; background: linear-gradient(135deg, #6366f1, #22d3ee); opacity: 0.15; filter: blur(8px);"></div>
       </div>
-      <script>
-        window.onerror = function(msg, url, lineNo, columnNo, error) {
-          var errorDisplay = document.getElementById('error-display');
-          var statusText = document.getElementById('status-text');
-          if (errorDisplay) {
-            errorDisplay.style.display = 'block';
-            errorDisplay.innerHTML = '<b>App Error:</b><br>' + msg + '<br><small>Line: ' + lineNo + '</small>';
-            statusText.innerText = 'Failed to load application';
-          }
-          return false;
-        };
-      </script>
+      <h1 style="font-size: 24px; font-weight: 700; color: #ffffff; margin-bottom: 8px; letter-spacing: -0.025em;">GenVoice</h1>
+      <p id="status-text" style="color: rgba(34, 211, 238, 0.6); font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.2em; font-family: monospace;">Initializing GenVoice Engine...</p>
+      <div id="error-display" style="display: none; margin-top: 32px; padding: 16px; background-color: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #f87171; border-radius: 16px; max-width: 80%; text-align: center; font-size: 10px; font-family: monospace; line-height: 1.5;"></div>
+      
       <style>
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        body.app-ready #loading-screen { opacity: 0; pointer-events: none; }
       </style>
     </div>
+
+    <div id="root"></div>
+
+    <script>
+      window.onerror = function(msg, url, lineNo, columnNo, error) {
+        var errorDisplay = document.getElementById('error-display');
+        var statusText = document.getElementById('status-text');
+        if (errorDisplay) {
+          errorDisplay.style.display = 'block';
+          errorDisplay.innerHTML = '<b>System Error:</b><br>' + msg + '<br><small>at ' + lineNo + ':' + columnNo + '</small>';
+          statusText.innerText = 'Load failed';
+          statusText.style.color = '#ef4444';
+        }
+        return false;
+      };
+
+      // Safety timeout
+      setTimeout(() => {
+        if (!window.appInitialized) {
+          console.warn('Boot taking too long...');
+        }
+      }, 15000);
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
