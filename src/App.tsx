@@ -1046,9 +1046,9 @@ export default function App() {
                 <textarea 
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  rows={10}
+                  rows={4}
                   placeholder="Type or paste text to synthesize..."
-                  className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all resize-none placeholder:text-slate-600"
+                  className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all resize-none placeholder:text-slate-600 sm:min-h-[200px]"
                 />
                 <div className="flex justify-between mt-3 text-[11px] font-medium text-slate-500">
                   <span>{text.length} characters</span>

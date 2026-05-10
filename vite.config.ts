@@ -12,10 +12,12 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg', 'icon-512.png'],
+        includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
         manifest: {
           name: 'GenVoice - Neural TTS',
           short_name: 'GenVoice',
+          start_url: '/',
+          id: '/',
           description: 'Emotional Text-to-Speech powered by Gemini 2.5 Flash',
           theme_color: '#6366f1',
           background_color: '#0a0a0a',
@@ -25,7 +27,7 @@ export default defineConfig(({mode}) => {
           categories: ['utilities', 'productivity', 'multimedia'],
           icons: [
             {
-              src: 'icon-512.png',
+              src: 'icon-192.png',
               sizes: '192x192',
               type: 'image/png'
             },
