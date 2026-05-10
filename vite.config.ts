@@ -12,7 +12,7 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['icon.svg'],
+        includeAssets: ['icon.svg', 'icon-512.png'],
         manifest: {
           name: 'GenVoice - Neural TTS',
           short_name: 'GenVoice',
@@ -25,17 +25,17 @@ export default defineConfig(({mode}) => {
           categories: ['utilities', 'productivity', 'multimedia'],
           icons: [
             {
-              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              src: 'icon-512.png',
               sizes: '192x192',
               type: 'image/png'
             },
             {
-              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              src: 'icon-512.png',
               sizes: '512x512',
               type: 'image/png'
             },
             {
-              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              src: 'icon-512.png',
               sizes: '512x512',
               type: 'image/png',
               purpose: 'any maskable'
