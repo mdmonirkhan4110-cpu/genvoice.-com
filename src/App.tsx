@@ -967,6 +967,17 @@ export default function App() {
         </motion.div>
         
         <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
+          {isInstallable && (
+            <button 
+              onClick={installApp}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/30 transition-all group shrink-0 shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)] animate-pulse hover:animate-none"
+              title="Install App"
+            >
+              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <span className="text-[10px] sm:text-xs font-bold font-bengali">ইন্সটল অ্যাপ</span>
+            </button>
+          )}
+
           <button 
             onClick={() => setIsCartoonMode(!isCartoonMode)}
             className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl border transition-all group shrink-0 ${
