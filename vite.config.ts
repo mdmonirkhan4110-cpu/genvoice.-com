@@ -25,20 +25,20 @@ export default defineConfig(({mode}) => {
           categories: ['utilities', 'productivity', 'multimedia'],
           icons: [
             {
-              src: 'icon.svg',
+              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
               sizes: '192x192',
-              type: 'image/svg+xml'
+              type: 'image/png'
             },
             {
-              src: 'icon.svg',
+              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
               sizes: '512x512',
-              type: 'image/svg+xml'
+              type: 'image/png'
             },
             {
-              src: 'icon.svg',
+              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
               sizes: '512x512',
-              type: 'image/svg+xml',
-              purpose: 'maskable'
+              type: 'image/png',
+              purpose: 'any maskable'
             }
           ]
         },

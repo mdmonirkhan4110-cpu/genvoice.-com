@@ -948,8 +948,8 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[#0a0a0a] text-slate-200 selection:bg-indigo-500/30 font-sans sm:pb-0 pb-20 custom-scrollbar overflow-x-hidden">
-        <div className="p-3 md:p-8 max-w-6xl mx-auto w-full overflow-x-hidden">
+      <div className="min-h-screen bg-[#0a0a0a] text-slate-200 selection:bg-indigo-500/30 font-sans sm:pb-0 pb-20 custom-scrollbar">
+        <div className="p-3 md:p-8 max-w-6xl mx-auto w-full">
       {/* Header */}
       <header className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
         <motion.div 
