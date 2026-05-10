@@ -35,19 +35,9 @@ import {
   Mic2,
   ChevronDown,
   RefreshCw,
-  Waves,
-  ShieldAlert,
-  Terminal,
-  Database,
-  Cpu,
-  Lock,
-  Unlock,
-  Gauge
+  Waves
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { VOICES, EMOTIONS } from './constants';
-import { HistoryItem, LogEntry } from './types';
-import { createWavBlob } from './utils';
 
 // --- Components ---
 
@@ -127,137 +117,254 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   }
 }
 
+// --- Constants & Types ---
+
+const VOICES = [
+  { name: 'Zephyr', style: 'Bright', cat: 'bright' },
+  { name: 'Puck', style: 'Cheerful', cat: 'bright' },
+  { name: 'Charon', style: 'Informative', cat: 'calm' },
+  { name: 'Kore', style: 'Firm', cat: 'calm' },
+  { name: 'Fenrir', style: 'Excitable', cat: 'bright' },
+  { name: 'Leda', style: 'Youthful', cat: 'bright' },
+  { name: 'Orus', style: 'Corporate', cat: 'calm' },
+  { name: 'Aoede', style: 'Breezy', cat: 'calm' },
+  { name: 'Callirrhoe', style: 'Easygoing', cat: 'calm' },
+  { name: 'Autonoe', style: 'Bright', cat: 'bright' },
+  { name: 'Enceladus', style: 'Breathy', cat: 'calm' },
+  { name: 'Iapetus', style: 'Clear', cat: 'calm' },
+  { name: 'Umbriel', style: 'Easygoing', cat: 'calm' },
+  { name: 'Algieba', style: 'Smooth', cat: 'calm' },
+  { name: 'Despina', style: 'Smooth', cat: 'calm' },
+  { name: 'Erinome', style: 'Clear', cat: 'calm' },
+  { name: 'Algenib', style: 'Gravelly', cat: 'calm' },
+  { name: 'Rasalgethi', style: 'Informative', cat: 'calm' },
+  { name: 'Laomedeia', style: 'Cheerful', cat: 'bright' },
+  { name: 'Achernar', style: 'Soft', cat: 'calm' },
+  { name: 'Alnilam', style: 'Firm', cat: 'calm' },
+  { name: 'Schedar', style: 'Even', cat: 'calm' },
+  { name: 'Gacrux', style: 'Mature', cat: 'calm' },
+  { name: 'Pulcherrima', style: 'Forward', cat: 'bright' },
+  { name: 'Achird', style: 'Friendly', cat: 'bright' },
+  { name: 'Zubenelgenubi', style: 'Casual', cat: 'calm' },
+  { name: 'Vindemiatrix', style: 'Gentle', cat: 'calm' },
+  { name: 'Sadachbia', style: 'Lively', cat: 'bright' },
+  { name: 'Sadaltager', style: 'Knowledgeable', cat: 'calm' },
+  { name: 'Sulafat', style: 'Raised', cat: 'bright' }
+];
+
+const EMOTIONS = [
+  { id: 'neutral', name: 'Neutral', icon: '😐', color: 'slate', desc: 'Natural', prompt: 'Speak naturally' },
+  { id: 'happy', name: 'Happy', icon: '😊', color: 'yellow', desc: 'Upbeat', prompt: 'Speak cheerfully' },
+  { id: 'sad', name: 'Sad', icon: '😢', color: 'blue', desc: 'Slow', prompt: 'Speak sadly' },
+  { id: 'angry', name: 'Angry', icon: '😠', color: 'red', desc: 'Intense', prompt: 'Speak angrily' },
+  { id: 'excited', name: 'Excited', icon: '🤩', color: 'pink', desc: 'Energetic', prompt: 'Speak excitedly' },
+  { id: 'calm', name: 'Calm', icon: '😌', color: 'emerald', desc: 'Soothing', prompt: 'Speak calmly' },
+  { id: 'fearful', name: 'Fearful', icon: '😨', color: 'purple', desc: 'Tense', prompt: 'Speak fearfully' },
+  { id: 'surprised', name: 'Surprised', icon: '😲', color: 'orange', desc: 'Shocked', prompt: 'Speak with surprise' },
+  { id: 'whisper', name: 'Whisper', icon: '🤫', color: 'cyan', desc: 'Quiet', prompt: 'Speak in a whisper' },
+  { id: 'shout', name: 'Shout', icon: '📢', color: 'rose', desc: 'Loud', prompt: 'Speak loudly and shouting' },
+  { id: 'cry', name: 'Cry', icon: '😭', color: 'indigo', desc: 'Sobbing', prompt: 'Speak as if crying' },
+  { id: 'laugh', name: 'Laugh', icon: '😂', color: 'amber', desc: 'Giggling', prompt: 'Speak with laughter' },
+  { id: 'romantic', name: 'Romantic', icon: '❤️', color: 'red', desc: 'Loving', prompt: 'Speak romantically' },
+  { id: 'mysterious', name: 'Mystery', icon: '🕵️', color: 'violet', desc: 'Secretive', prompt: 'Speak mysteriously' },
+  { id: 'sarcastic', name: 'Sarcastic', icon: '🙄', color: 'lime', desc: 'Ironical', prompt: 'Speak sarcastically' },
+  { id: 'serious', name: 'Serious', icon: '🧐', color: 'zinc', desc: 'Formal', prompt: 'Speak seriously' },
+  { id: 'friendly', name: 'Friendly', icon: '👋', color: 'teal', desc: 'Warm', prompt: 'Speak friendly' },
+  { id: 'professional', name: 'Pro', icon: '💼', color: 'blue', desc: 'Business', prompt: 'Speak professionally' },
+  { id: 'dramatic', name: 'Dramatic', icon: '🎭', color: 'fuchsia', desc: 'Theatrical', prompt: 'Speak dramatically' },
+  { id: 'tired', name: 'Tired', icon: '😴', color: 'stone', desc: 'Sleepy', prompt: 'Speak tiredly' },
+  { id: 'energetic', name: 'Energy', icon: '⚡', color: 'yellow', desc: 'Fast', prompt: 'Speak energetically' },
+  { id: 'confident', name: 'Confident', icon: '😎', color: 'sky', desc: 'Bold', prompt: 'Speak confidently' },
+  { id: 'shy', name: 'Shy', icon: '🥺', color: 'rose', desc: 'Quiet', prompt: 'Speak shyly' },
+  { id: 'hopeful', name: 'Hopeful', icon: '✨', color: 'amber', desc: 'Positive', prompt: 'Speak hopefully' },
+  { id: 'bored', name: 'Bored', icon: '😑', color: 'neutral', desc: 'Dull', prompt: 'Speak boredly' },
+  { id: 'anxious', name: 'Anxious', icon: '😰', color: 'orange', desc: 'Nervous', prompt: 'Speak anxiously' },
+  { id: 'proud', name: 'Proud', icon: '🦁', color: 'gold', desc: 'Grand', prompt: 'Speak proudly' },
+  { id: 'guilty', name: 'Guilty', icon: '😔', color: 'slate', desc: 'Regretful', prompt: 'Speak guiltily' },
+  { id: 'jealous', name: 'Jealous', icon: '😒', color: 'green', desc: 'Envious', prompt: 'Speak jealously' },
+  { id: 'lonely', name: 'Lonely', icon: '🏚️', color: 'blue', desc: 'Isolated', prompt: 'Speak lonely' },
+  { id: 'grateful', name: 'Grateful', icon: '🙏', color: 'emerald', desc: 'Thankful', prompt: 'Speak gratefully' },
+  { id: 'curious', name: 'Curious', icon: '🤔', color: 'cyan', desc: 'Inquisitive', prompt: 'Speak curiously' },
+  { id: 'determined', name: 'Firm', icon: '😤', color: 'red', desc: 'Strong', prompt: 'Speak determinedly' },
+  { id: 'relaxed', name: 'Relaxed', icon: '🏖️', color: 'teal', desc: 'Chill', prompt: 'Speak relaxed' },
+  { id: 'worried', name: 'Worried', icon: '😟', color: 'yellow', desc: 'Uneasy', prompt: 'Speak worriedly' },
+  { id: 'disappointed', name: 'Sad', icon: '😞', color: 'slate', desc: 'Let down', prompt: 'Speak disappointedly' },
+  { id: 'inspired', name: 'Inspired', icon: '💡', color: 'amber', desc: 'Creative', prompt: 'Speak inspired' },
+  { id: 'silly', name: 'Silly', icon: '🤪', color: 'pink', desc: 'Funny', prompt: 'Speak sillily' },
+  { id: 'grumpy', name: 'Grumpy', icon: '😡', color: 'orange', desc: 'Crabby', prompt: 'Speak grumpily' },
+  { id: 'peaceful', name: 'Peace', icon: '🕊️', color: 'white', desc: 'Serene', prompt: 'Speak peacefully' },
+  { id: 'nostalgic', name: 'Old', icon: '📻', color: 'stone', desc: 'Past', prompt: 'Speak nostalgically' },
+  { id: 'brave', name: 'Brave', icon: '🛡️', color: 'red', desc: 'Fearless', prompt: 'Speak bravely' },
+  { id: 'kind', name: 'Kind', icon: '🤝', color: 'emerald', desc: 'Gentle', prompt: 'Speak kindly' },
+  { id: 'stern', name: 'Stern', icon: '🤨', color: 'zinc', desc: 'Strict', prompt: 'Speak sternly' },
+  { id: 'playful', name: 'Play', icon: '🎈', color: 'pink', desc: 'Fun', prompt: 'Speak playfully' },
+  { id: 'elegant', name: 'Elegant', icon: '💎', color: 'indigo', desc: 'Fancy', prompt: 'Speak elegantly' },
+  { id: 'robotic', name: 'Robot', icon: '🤖', color: 'slate', desc: 'Flat', prompt: 'Speak robotically' },
+  { id: 'ghostly', name: 'Ghost', icon: '👻', color: 'white', desc: 'Eerie', prompt: 'Speak ghostly' },
+  { id: 'heroic', name: 'Hero', icon: '🦸', color: 'blue', desc: 'Epic', prompt: 'Speak heroically' },
+  { id: 'villainous', name: 'Evil', icon: '😈', color: 'purple', desc: 'Dark', prompt: 'Speak villainously' },
+  { id: 'cartoon_happy', name: 'Cartoon Joy', icon: '🐣', color: 'yellow', desc: 'Anime', prompt: 'Speak with an exaggerated, high-pitched, bubbly cartoon character voice. Be very expressive.' },
+  { id: 'cartoon_angry', name: 'Cartoon Fury', icon: '👹', color: 'red', desc: 'Dramatic', prompt: 'Speak like a funny cartoon villain who is very angry. Use exaggerated emphasis on words.' },
+  { id: 'cartoon_scared', name: 'Cartoon Panic', icon: '👻', color: 'purple', desc: 'Hilarious', prompt: 'Speak like a cartoon character who is completely panicking and trembling. High energy and jittery.' },
+  { id: 'monster', name: 'Monster', icon: '👹', color: 'red', desc: 'Beast', prompt: 'Speak with a deep, growling, monstrous voice. Very low pitch and terrifying.' },
+  { id: 'child', name: 'Child', icon: '👶', color: 'sky', desc: 'Cute', prompt: 'Speak with a high-pitched, innocent, and sweet child voice. Pure and soft.' },
+  { id: 'alien', name: 'Alien', icon: '👽', color: 'lime', desc: 'Unique', prompt: 'Speak with a strange, warbling, extraterrestrial voice. Use unusual inflections.' },
+  { id: 'cartoon_silly', name: 'Silly/Funny', icon: '🤡', color: 'orange', desc: 'Goofy', prompt: 'Speak like a goofy, silly cartoon sidekick. Use funny inflections and high energy. Be extremely entertaining.' },
+  { id: 'witch', name: 'Witch/Old', icon: '🧙‍♀️', color: 'indigo', desc: 'Cracked', prompt: 'Speak like a mysterious old witch or an eccentric older character. Use a crackly, aged, and slightly rasping voice.' },
+  { id: 'giant', name: 'Goofy Giant', icon: '🧱', color: 'stone', desc: 'Deep', prompt: 'Speak like a slow-witted, large, and friendly giant. Use a very deep, slow, and resonant voice.' },
+  { id: 'scientist', name: 'Mad Scientist', icon: '🧪', color: 'emerald', desc: 'Manic', prompt: 'Speak like an eccentric, high-strung mad scientist. Use erratic pacing and sudden bursts of energy.' },
+  { id: 'crying', name: 'Crying', icon: '😭', color: 'blue', desc: 'Emotional', prompt: 'Speak while sobbing and being completely heartbroken. The voice should tremble and break with sadness.' },
+  { id: 'sneaky', name: 'Sneaky', icon: '👣', color: 'slate', desc: 'Suspicious', prompt: 'Speak in a low, conspiratorial whisper. Like you are a spy or a thief hiding in the shadows.' },
+  { id: 'sassy', name: 'Sassy', icon: '💅', color: 'pink', desc: 'Confident', prompt: 'Speak with a sharp, witty, and confident sassy attitude. Use lots of personality and emphasis.' },
+  { id: 'cartoon_hero', name: 'Heroic Hero', icon: '🦸‍♂️', color: 'blue', desc: 'Brave', prompt: 'Speak like a classic, noble cartoon superhero. Deep, confident, and inspiring voice.' },
+  { id: 'cartoon_villain_laugh', name: 'Evil Cackle', icon: '🦹', color: 'purple', desc: 'Manic', prompt: 'Speak like a villain having a maniacal laughing fit. Very expressive and slightly unhinged.' },
+  { id: 'cartoon_ninja', name: 'Swift Ninja', icon: '🥷', color: 'slate', desc: 'Quick', prompt: 'Speak in a fast, focused, and disciplined ninja voice. Sharp and precise delivery.' },
+  { id: 'cartoon_pirate', name: 'Hearty Pirate', icon: '🏴‍☠️', color: 'orange', desc: 'Rough', prompt: 'Speak like a classic cartoon pirate. Gruff, hearty, and full of seafaring slang.' },
+  { id: 'cartoon_fairy', name: 'Tiny Fairy', icon: '🧚', color: 'pink', desc: 'Light', prompt: 'Speak with a very high-pitched, delicate, and tinkling fairy voice. Soft and magical.' },
+  { id: 'cartoon_dragon', name: 'Fiery Dragon', icon: '🐲', color: 'red', desc: 'Power', prompt: 'Speak with a deep, rumbling, and powerful dragon voice. Slightly smoky and intimidating.' },
+  { id: 'cartoon_robot_glitch', name: 'Glitchy Bot', icon: '📟', color: 'cyan', desc: 'Broken', prompt: 'Speak like a robot that is malfunctioning or glitching. Use stuttered delivery and variable pitch.' },
+  { id: 'cartoon_detective', name: 'Noir Sleuth', icon: '🕵️‍♂️', color: 'zinc', desc: 'Cool', prompt: 'Speak in a gravelly, cool, and mysterious noir detective voice. Very rhythmic and moody.' },
+  { id: 'cartoon_explorer', name: 'Brave Scout', icon: '🏕️', color: 'emerald', desc: 'Eager', prompt: 'Speak with an enthusiastic, high-energy, and adventurous young explorer voice.' },
+  { id: 'cartoon_king', name: 'Pompous King', icon: '👑', color: 'gold', desc: 'Royal', prompt: 'Speak with a very posh, slightly arrogant, and commanding royal voice.' },
+  { id: 'cartoon_jester', name: 'Wild Jester', icon: '🃏', color: 'yellow', desc: 'Funny', prompt: 'Speak with an erratic, high-pitched, and playful jester voice. Lots of giggles and jumps.' },
+  { id: 'cartoon_warrior', name: 'Battle Grunt', icon: '⚔️', color: 'red', desc: 'Strong', prompt: 'Speak like a powerful warrior in the heat of battle. Gravelly, breathless, and intense.' },
+  { id: 'cartoon_space', name: 'Star Captain', icon: '🚀', color: 'indigo', desc: 'Epic', prompt: 'Speak with a dramatic, booming, and authoritative space captain voice. Very theatrical.' },
+  { id: 'cartoon_zombie', name: 'Funny Zombie', icon: '🧟', color: 'green', desc: 'Dazed', prompt: 'Speak like a cartoon zombie that is slow, dazed, and groaning words out.' },
+  { id: 'cartoon_ghost_friendly', name: 'Pudge Ghost', icon: '👻', color: 'sky', desc: 'Sweet', prompt: 'Speak with a soft, breathy, and friendly ghost voice. Very cute and gentle.' },
+  { id: 'cartoon_cowboy', name: 'Lone Rider', icon: '🤠', color: 'amber', desc: 'Drawl', prompt: 'Speak with a slow, Southern cowboy drawl. Cool, calm, and collected.' },
+  { id: 'cartoon_mermaid', name: 'Sea Singer', icon: '🧜‍♀️', color: 'blue', desc: 'Dreamy', prompt: 'Speak with a dreamy, melodic, and slightly echoing underwater voice.' },
+  { id: 'cartoon_dwarf', name: 'Grumpy Miner', icon: '⚒️', color: 'stone', desc: 'Gravel', prompt: 'Speak with a deep, gravelly, and grumpy dwarf-like voice. Strong accent.' },
+  { id: 'cartoon_elf', name: 'Swift Elf', icon: '🧝', color: 'forest', desc: 'Elegant', prompt: 'Speak with a light, graceful, and highly articulate elven voice.' },
+  { id: 'cartoon_alien_cute', name: 'Bip-Bop', icon: '👾', color: 'lime', desc: 'Small', prompt: 'Speak with a very high-pitched, chirpy, and adorable small alien voice.' }
+];
+
+interface HistoryItem {
+  id: string;
+  text: string;
+  voice: string;
+  emotion: string;
+  color: string;
+  speed: number;
+  pitch: number;
+  time: string;
+  audioUrl: string;
+}
+
+// --- Helper Functions ---
+
+function createWavBlob(pcmData: Uint8Array, sampleRate: number, channels: number, bitsPerSample: number) {
+  const headerSize = 44;
+  const dataSize = pcmData.length;
+  const buffer = new ArrayBuffer(headerSize + dataSize);
+  const view = new DataView(buffer);
+  
+  const writeString = (view: DataView, offset: number, string: string) => {
+    for (let i = 0; i < string.length; i++) {
+      view.setUint8(offset + i, string.charCodeAt(i));
+    }
+  };
+
+  // RIFF chunk descriptor
+  writeString(view, 0, 'RIFF');
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(view, 8, 'WAVE');
+  
+  // fmt sub-chunk
+  writeString(view, 12, 'fmt ');
+  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+  view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+  view.setUint16(22, channels, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * channels * bitsPerSample / 8, true); // ByteRate
+  view.setUint16(32, channels * bitsPerSample / 8, true); // BlockAlign
+  view.setUint16(34, bitsPerSample, true);
+  
+  // data sub-chunk
+  writeString(view, 36, 'data');
+  view.setUint32(40, dataSize, true);
+  
+  // Copy PCM data
+  const bytes = new Uint8Array(buffer, 44);
+  bytes.set(pcmData);
+  
+  return new Blob([buffer], { type: 'audio/wav' });
+}
+
 // --- Main Component ---
 
 export default function App() {
-  const [apiKeys, setApiKeys] = useState<string[]>(['']);
-  const [auphonicToken, setAuphonicToken] = useState<string>('');
-  const [isAuphonicEnabled, setIsAuphonicEnabled] = useState<boolean>(true);
+  const [apiKeys, setApiKeys] = useState<string[]>(() => {
+    try {
+      const savedKeys = localStorage.getItem('genvoice_api_keys');
+      if (savedKeys) {
+        const parsed = JSON.parse(savedKeys);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0] !== '') return parsed;
+      }
+      const savedKey = localStorage.getItem('genvoice_api_key');
+      if (savedKey) return [savedKey];
+    } catch (e) {}
+    // Vite env variable check
+    const envKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : '';
+    return envKey ? [envKey] : [''];
+  });
+  const [auphonicToken, setAuphonicToken] = useState<string>(() => localStorage.getItem('genvoice_auphonic_token') || '');
+  const [isAuphonicEnabled, setIsAuphonicEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem('genvoice_auphonic_enabled');
+    return saved !== null ? saved === 'true' : false;
+  });
   const [activeKeyIndex, setActiveKeyIndex] = useState<number>(0);
   const [showKeyManager, setShowKeyManager] = useState<boolean>(false);
   const [text, setText] = useState<string>('');
-  const [selVoice, setSelVoice] = useState<string>('Kore');
-  const [selEmotion, setSelEmotion] = useState<string>('neutral');
-  const [speed, setSpeed] = useState<number>(1.0);
-  const [pitch, setPitch] = useState<number>(0);
-  const [volumeBoost, setVolumeBoost] = useState<number>(1.0);
-  const [clarity, setClarity] = useState<number>(50);
-  const [warmth, setWarmth] = useState<number>(50);
+  const [selVoice, setSelVoice] = useState<string>(() => localStorage.getItem('genvoice_voice') || 'Kore');
+  const [selEmotion, setSelEmotion] = useState<string>(() => localStorage.getItem('genvoice_emotion') || 'neutral');
+  const [speed, setSpeed] = useState<number>(() => {
+    const saved = localStorage.getItem('genvoice_speed');
+    return saved ? parseFloat(saved) : 1.0;
+  });
+  const [pitch, setPitch] = useState<number>(() => {
+    const saved = localStorage.getItem('genvoice_pitch');
+    return saved ? parseInt(saved) : 0;
+  });
+  const [volumeBoost, setVolumeBoost] = useState<number>(() => {
+    const saved = localStorage.getItem('genvoice_volume');
+    return saved ? parseFloat(saved) : 1.0;
+  });
+  const [clarity, setClarity] = useState<number>(() => {
+    const saved = localStorage.getItem('genvoice_clarity');
+    return saved ? parseInt(saved) : 50;
+  });
+  const [warmth, setWarmth] = useState<number>(() => {
+    const saved = localStorage.getItem('genvoice_warmth');
+    return saved ? parseInt(saved) : 50;
+  });
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('genvoice_history');
+      if (saved) return JSON.parse(saved);
+    } catch (e) {}
+    return [];
+  });
   const [voiceFilter, setVoiceFilter] = useState<'all' | 'bright' | 'calm'>('all');
   const [statusMsg, setStatusMsg] = useState<{ text: string, type: 'success' | 'error' | 'info' } | null>(null);
   const [generationStep, setGenerationStep] = useState<number>(0);
   const [lastRequestTime, setLastRequestTime] = useState<number>(0);
   const [customEmotion, setCustomEmotion] = useState<string>('');
   const [newKeyInput, setNewKeyInput] = useState<string>('');
-  const [isCartoonMode, setIsCartoonMode] = useState<boolean>(true);
+  const [isCartoonMode, setIsCartoonMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('genvoice_cartoon_mode');
+    return saved !== null ? saved === 'true' : true;
+  });
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [showInstallHelp, setShowInstallHelp] = useState(false);
-  
-  // Master Control States
-  const [showAdminPanel, setShowAdminPanel] = useState<boolean>(false);
-  const [adminTab, setAdminTab] = useState<'config' | 'logs' | 'data'>('config');
-  const [isMasterLocked, setIsMasterLocked] = useState<boolean>(true);
-  const [systemLogs, setSystemLogs] = useState<LogEntry[]>([]);
-  const [serverStatus, setServerStatus] = useState<{ mode: string, time: string } | null>(null);
-  const [systemPrompt, setSystemPrompt] = useState<string>("ACTING MODE: You are a world-class cartoon voice actor. This is for an animation script. Use extreme vocal range, exaggerated pitch variations, and high character energy. Do not sound like a machine; sound like a living character with personality, quirks, and expressive breath patterns.");
-
-  // ... (inside useEffect or a new one)
-  useEffect(() => {
-    const checkStatus = async () => {
-      try {
-        const res = await fetch('/api/status');
-        if (res.ok) {
-          const data = await res.ok ? await res.json() : null;
-          if (data) setServerStatus({ mode: data.mode, time: data.time });
-        }
-      } catch (e) {
-        console.warn("Backend status unavailable - possibly running in pure SPA mode");
-      }
-    };
-    checkStatus();
-  }, [showAdminPanel]);
-  const [qualityPrompt, setQualityPrompt] = useState<string>("Deliver the speech with a highly natural, human-like, expressive, and conversational tone, avoiding any robotic cadence.");
-  const [selectedModel, setSelectedModel] = useState<string>("gemini-2.5-flash-preview-tts");
 
   const audioRef = useRef<HTMLAudioElement>(null);
-  
-  const addLog = (type: LogEntry['type'], message: string) => {
-    const newLog: LogEntry = {
-      id: Math.random().toString(36).substring(7),
-      time: new Date().toLocaleTimeString(),
-      type,
-      message
-    };
-    setSystemLogs(prev => [newLog, ...prev].slice(0, 50));
-  };
 
-  // Load saved data
+  // Load saved data - handled in initial state
   useEffect(() => {
-    const savedKeys = localStorage.getItem('genvoice_api_keys');
-    if (savedKeys) {
-      try {
-        const parsed = JSON.parse(savedKeys);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setApiKeys(parsed);
-        }
-      } catch (e) {
-        console.error("Failed to parse keys", e);
-      }
-    } else {
-      const savedKey = localStorage.getItem('genvoice_api_key');
-      if (savedKey) {
-        setApiKeys([savedKey]);
-      } else if (process.env.GEMINI_API_KEY) {
-        setApiKeys([process.env.GEMINI_API_KEY]);
-      }
-    }
-
-    const savedAuphonicToken = localStorage.getItem('genvoice_auphonic_token');
-    if (savedAuphonicToken) setAuphonicToken(savedAuphonicToken);
-
-    const savedAuphonicEnabled = localStorage.getItem('genvoice_auphonic_enabled');
-    if (savedAuphonicEnabled !== null) setIsAuphonicEnabled(savedAuphonicEnabled === 'true');
-
-    const savedCartoon = localStorage.getItem('genvoice_cartoon_mode');
-    if (savedCartoon !== null) setIsCartoonMode(savedCartoon === 'true');
-
-    const savedHistory = localStorage.getItem('genvoice_history');
-    if (savedHistory) {
-      try {
-        const parsed = JSON.parse(savedHistory);
-        setHistory(parsed);
-      } catch (e) {
-        console.error("Failed to parse history", e);
-      }
-    }
-
-    // Load other settings
-    const savedVoice = localStorage.getItem('genvoice_voice');
-    if (savedVoice) setSelVoice(savedVoice);
-    
-    const savedEmotion = localStorage.getItem('genvoice_emotion');
-    if (savedEmotion) setSelEmotion(savedEmotion);
-
-    const savedSpeed = localStorage.getItem('genvoice_speed');
-    if (savedSpeed) setSpeed(parseFloat(savedSpeed));
-
-    const savedPitch = localStorage.getItem('genvoice_pitch');
-    if (savedPitch) setPitch(parseInt(savedPitch));
-
-    const savedVolume = localStorage.getItem('genvoice_volume');
-    if (savedVolume) setVolumeBoost(parseFloat(savedVolume));
-
-    const savedClarity = localStorage.getItem('genvoice_clarity');
-    if (savedClarity) setClarity(parseInt(savedClarity));
-
-    const savedWarmth = localStorage.getItem('genvoice_warmth');
-    if (savedWarmth) setWarmth(parseInt(savedWarmth));
-
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -504,10 +611,10 @@ export default function App() {
         body: JSON.stringify({
           metadata: { title: `GenVoice_${Date.now()}` },
           algorithms: {
-            denoise: true,
+            denoise: false,
             normloudness: true,
             dynamic_range_compressor: true,
-            highpass_filter: true
+            highpass_filter: false
           },
           output_files: [{ format: 'wav' }]
         })
@@ -579,28 +686,28 @@ export default function App() {
     setIsGenerating(true);
     setGenerationStep(1); // Analyzing Text
     setLastRequestTime(now);
-    addLog('info', `Starting generation for: "${text.substring(0, 30)}..."`);
 
     const emotion = EMOTIONS.find(e => e.id === selEmotion);
     let retryCount = 0;
     const maxRetries = apiKeys.filter(k => k.trim()).length;
 
-    const attemptSpeech = async (key: string): Promise<string | null> => {
+    const attemptSpeech = async (key: string): Promise<{ data: string, mimeType: string } | null> => {
       try {
         setGenerationStep(2); // Selecting Voice & Emotion
         
-        const emotionInstruction = customEmotion.trim() ? `Speak with a ${customEmotion} tone` : (emotion?.prompt || 'Speak naturally');
+        let emotionInstruction = customEmotion.trim() ? `Speak with a ${customEmotion} tone` : (emotion?.prompt || 'Speak naturally');
+        const qualityInstruction = "Deliver the speech with a highly natural, human-like, expressive, and conversational tone, avoiding any robotic cadence.";
         
-        let prompt = `${emotionInstruction}. ${qualityPrompt}: ${text}`;
+        let prompt = `${emotionInstruction}. ${qualityInstruction}: ${text}`;
         
         if (isCartoonMode) {
-          prompt = `${emotionInstruction}. ${systemPrompt}. ${qualityPrompt}: ${text}`;
+          const cartoonAdvice = "ACTING MODE: You are a world-class cartoon voice actor. This is for an animation script. Use extreme vocal range, exaggerated pitch variations, and high character energy. Do not sound like a machine; sound like a living character with personality, quirks, and expressive breath patterns.";
+          prompt = `${emotionInstruction}. ${cartoonAdvice}. ${qualityInstruction}: ${text}`;
         }
 
         setGenerationStep(3); // Synthesizing Audio
-        addLog('request', `Sending request to Gemini (${selectedModel})`);
         
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${key}`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -624,10 +731,12 @@ export default function App() {
         }
 
         const data = await response.json();
-        addLog('response', `Received ${data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data ? 'audio data' : 'empty response'}`);
-        return data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data || null;
+        const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+        if (inlineData && inlineData.data) {
+          return { data: inlineData.data, mimeType: inlineData.mimeType || '' };
+        }
+        return null;
       } catch (err: any) {
-        addLog('error', err.message || 'Unknown API error');
         // Retry logic for transient errors
         if (retryCount < maxRetries - 1) {
           retryCount++;
@@ -643,10 +752,13 @@ export default function App() {
     };
 
     try {
-      const base64Audio = await attemptSpeech(currentKey);
+      const audioResult = await attemptSpeech(currentKey);
       
-      if (base64Audio) {
+      if (audioResult) {
         setGenerationStep(4); // Enhancing Audio Quality
+        const base64Audio = audioResult.data;
+        const mimeType = audioResult.mimeType || '';
+        
         const binaryString = atob(base64Audio);
         const bytes = new Uint8Array(binaryString.length);
         for (let i = 0; i < binaryString.length; i++) {
@@ -654,7 +766,21 @@ export default function App() {
         }
         
         // Finalizing
-        let finalBlob = createWavBlob(bytes, 24000, 1, 16);
+        let finalBlob;
+        
+        // Prevent audio corruption/gurgling by checking the actual bytes and MIME type
+        // If data starts with 'RIFF', it's already a WAV PCM file, do not prepend headers!
+        const isWavBytes = bytes.length > 4 && bytes[0] === 82 && bytes[1] === 73 && bytes[2] === 70 && bytes[3] === 70; 
+        const isMp3Bytes = bytes.length > 3 && bytes[0] === 73 && bytes[1] === 68 && bytes[2] === 51;
+
+        if (isWavBytes || mimeType.includes('wav')) {
+           finalBlob = new Blob([bytes], { type: 'audio/wav' });
+        } else if (isMp3Bytes || mimeType.includes('mp3')) {
+           finalBlob = new Blob([bytes], { type: 'audio/mp3' });
+        } else {
+           // Fallback to manually prepending WAV headers if it is raw PCM
+           finalBlob = createWavBlob(bytes, 24000, 1, 16);
+        }
 
         // Auphonic Integration
         if (isAuphonicEnabled && auphonicToken) {
@@ -771,8 +897,13 @@ export default function App() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[#0a0a0a] text-slate-200 selection:bg-indigo-500/30 font-sans sm:pb-0 pb-20 custom-scrollbar">
-        <div className="p-3 md:p-8 max-w-6xl mx-auto w-full">
+      <div className="relative min-h-screen bg-[#070709] text-slate-200 selection:bg-indigo-500/30 font-sans sm:pb-0 pb-20 custom-scrollbar overflow-x-hidden">
+        {/* Ambient background glows */}
+        <div className="fixed top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-indigo-500/10 blur-[120px] pointer-events-none" />
+        <div className="fixed bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-emerald-500/10 blur-[120px] pointer-events-none" />
+        <div className="fixed top-[40%] left-[80%] w-[30%] h-[30%] rounded-full bg-purple-500/5 blur-[100px] pointer-events-none" />
+        
+        <div className="relative z-10 p-3 md:p-8 max-w-6xl mx-auto w-full overflow-x-hidden pt-8">
       {/* Header */}
       <header className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
         <motion.div 
@@ -790,17 +921,6 @@ export default function App() {
         </motion.div>
         
         <div className="flex items-center gap-2 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
-          {isInstallable && (
-            <button 
-              onClick={installApp}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-emerald-500/20 to-teal-500/20 border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/30 transition-all group shrink-0 shadow-[0_0_15px_-5px_rgba(16,185,129,0.3)] animate-pulse hover:animate-none"
-              title="Install App"
-            >
-              <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-              <span className="text-[10px] sm:text-xs font-bold font-bengali">ইন্সটল অ্যাপ</span>
-            </button>
-          )}
-
           <button 
             onClick={() => setIsCartoonMode(!isCartoonMode)}
             className={`flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl border transition-all group shrink-0 ${
@@ -815,24 +935,15 @@ export default function App() {
           </button>
           
           <button 
-            onClick={() => setShowAdminPanel(true)}
-            className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 hover:text-indigo-300 hover:bg-indigo-500/20 transition-all group shrink-0"
-            title="Master Control Center"
-          >
-            <Gauge className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:scale-110 transition-transform" />
-            <span className="text-[10px] sm:text-xs font-bold font-bengali">মাস্টার কন্ট্রোল</span>
-          </button>
-
-          <button 
             onClick={() => setShowKeyManager(true)}
             className="flex items-center gap-2 px-3 sm:px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-slate-400 hover:text-white hover:bg-white/10 transition-all group shrink-0"
           >
             <Settings2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:rotate-90 transition-transform duration-500" />
             <span className="text-[10px] sm:text-xs font-bold">Settings</span>
           </button>
-          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[10px] uppercase tracking-widest text-slate-500 font-bold">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-            v3.0
+          <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] uppercase tracking-widest text-indigo-400 font-bold">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+            2.0 Flash Engine
           </div>
         </div>
       </header>
@@ -840,6 +951,49 @@ export default function App() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left Column: Input & Controls */}
         <div className="lg:col-span-2 space-y-6">
+          {/* API Key Status Notice */}
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`flex flex-col sm:flex-row items-center justify-between p-3 rounded-2xl border ${
+              apiKeys.filter(k => k.trim() !== '').length > 0
+              ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-400' 
+              : 'bg-amber-500/5 border-amber-500/20 text-amber-500'
+            }`}
+          >
+            <div className="flex items-center gap-3 mb-2 sm:mb-0">
+              <div className={`p-1.5 rounded-lg ${
+                apiKeys.filter(k => k.trim() !== '').length > 0
+                ? 'bg-emerald-500/20' 
+                : 'bg-amber-500/20'
+              }`}>
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-wider leading-none mb-1">
+                  {apiKeys.filter(k => k.trim() !== '').length > 0
+                    ? 'Premium Status: Your Keys Active' 
+                    : 'Limited Status: System Key Missing'}
+                </p>
+                <p className="text-[10px] opacity-70 font-bengali leading-none mt-1">
+                  {apiKeys.filter(k => k.trim() !== '').length > 0
+                    ? 'আপনার এপিআই কী সেট করা আছে। আনলিমিটেড ভয়েস জেনারেট করতে পারবেন।'
+                    : 'সঠিক এপিআই কী দেওয়া নেই। সেটিংস থেকে আপনার নিজের এপিআই কী যুক্ত করুন।'}
+                </p>
+              </div>
+            </div>
+            <button 
+              onClick={() => setShowKeyManager(true)}
+              className={`px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all border ${
+                apiKeys.filter(k => k.trim() !== '').length > 0
+                ? 'bg-emerald-500/10 border-emerald-500/20 hover:bg-emerald-500/20 text-emerald-400' 
+                : 'bg-amber-500/10 border-amber-500/20 hover:bg-amber-500/20 text-amber-500 animate-pulse'
+              }`}
+            >
+              Manage Keys
+            </button>
+          </motion.div>
+
           {/* Text Input Panel */}
               <motion.section 
                 whileHover={{ rotateY: 1, rotateX: 1, scale: 1.005 }}
@@ -869,9 +1023,9 @@ export default function App() {
                 <textarea 
                   value={text}
                   onChange={(e) => setText(e.target.value)}
-                  rows={4}
+                  rows={10}
                   placeholder="Type or paste text to synthesize..."
-                  className="w-full bg-black/20 border border-white/10 rounded-xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-500/50 transition-all resize-none placeholder:text-slate-600 sm:min-h-[200px]"
+                  className="w-full bg-[#111114] border border-white/5 rounded-2xl p-5 text-[15px] focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10 transition-all resize-none placeholder:text-slate-600 shadow-inner custom-scrollbar"
                 />
                 <div className="flex justify-between mt-3 text-[11px] font-medium text-slate-500">
                   <span>{text.length} characters</span>
@@ -1010,19 +1164,32 @@ export default function App() {
               {/* Generate Button */}
               <button 
                 onClick={handleGenerate}
-                disabled={isGenerating}
-                className={`w-full py-5 rounded-2xl font-bold text-lg shadow-2xl transition-all flex items-center justify-center gap-3 group ${
-                  isGenerating 
-                  ? 'bg-slate-800 text-slate-500 cursor-not-allowed' 
-                  : 'bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 hover:scale-[1.01] active:scale-[0.99] text-white shadow-cyan-500/20'
+                disabled={isGenerating || !text.trim()}
+                className={`relative group w-full py-5 rounded-2xl flex items-center justify-center gap-3 text-lg font-black tracking-wide transition-all duration-500 overflow-hidden ${
+                  isGenerating || !text.trim()
+                  ? 'bg-[#111114] text-slate-600 border border-white/5 cursor-not-allowed shadow-none' 
+                  : 'bg-indigo-600 text-white shadow-[0_0_50px_rgba(79,70,229,0.3)] hover:shadow-[0_0_60px_rgba(79,70,229,0.5)] hover:-translate-y-1 active:translate-y-0 active:scale-[0.98]'
                 }`}
               >
-                {isGenerating ? (
-                  <Loader2 className="w-6 h-6 animate-spin" />
-                ) : (
-                  <Wand2 className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                {!isGenerating && !!text.trim() && (
+                  <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent,rgba(255,255,255,0.2),transparent)] -translate-x-[200%] group-hover:animate-[shimmer_2s_infinite] pointer-events-none"></div>
                 )}
-                {isGenerating ? 'Synthesizing Audio...' : 'Generate Emotional Speech'}
+                {!isGenerating && !!text.trim() && (
+                  <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-r from-cyan-500 via-indigo-500 to-purple-600 transition-opacity duration-500 pointer-events-none mix-blend-overlay"></div>
+                )}
+                
+                <div className="relative flex items-center justify-center gap-3">
+                  {isGenerating ? (
+                    <Loader2 className="w-6 h-6 animate-spin text-indigo-400" />
+                  ) : (
+                    <div className={`${text.trim() ? 'bg-white/20' : 'bg-white/5'} p-1.5 rounded-full group-hover:rotate-[15deg] group-hover:scale-110 transition-transform duration-300`}>
+                       <Wand2 className={`w-5 h-5 ${text.trim() ? 'text-white' : 'text-slate-500'}`} />
+                    </div>
+                  )}
+                  <span className={`${text.trim() ? 'font-bengali' : 'font-bengali opacity-60'}`}>
+                    {isGenerating ? 'ভয়েস তৈরি হচ্ছে...' : 'ভয়েস জেনারেট করুন'}
+                  </span>
+                </div>
               </button>
             </div>
 
@@ -1137,6 +1304,22 @@ export default function App() {
                       </button>
                     ))
                   )}
+                </div>
+
+                {/* Support Section */}
+                <div className="mt-6 space-y-4">
+                  <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-6 text-center shadow-[0_0_40px_rgba(99,102,241,0.1)]">
+                    <div className="flex flex-col items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-500">
+                      <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mb-3">
+                         <Coffee className="w-6 h-6 text-indigo-400 group-hover:text-indigo-300" />
+                      </div>
+                      <h4 className="text-sm font-bold text-slate-200 mb-1 font-bengali">ডেভেলপার সাপোর্ট</h4>
+                      <p className="text-[10px] text-slate-400 font-bengali">এই টুলটি ভালো লাগলে আমাকে কফি খাওয়াতে পারেন!</p>
+                    </div>
+                    <button className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white text-xs font-bold transition-all shadow-lg shadow-indigo-500/25">
+                      Support Creator
+                    </button>
+                  </div>
                 </div>
 
               {/* Stats */}
@@ -1346,24 +1529,27 @@ export default function App() {
                 <div className="bg-emerald-500/5 border border-emerald-500/10 rounded-2xl p-4 space-y-3">
                   <div className="flex gap-3">
                     <Info className="w-5 h-5 text-emerald-500 shrink-0 mt-0.5" />
-                    <p className="text-xs text-emerald-500/90 leading-relaxed">
-                      Add up to 10 Gemini API keys. The system will automatically rotate between them.
-                    </p>
+                    <div>
+                      <h4 className="text-xs font-bold text-emerald-500 mb-1">এপিআই কী (API Key) সেট আপ</h4>
+                      <p className="text-[11px] text-emerald-500/80 leading-relaxed font-bengali">
+                        আপনি এখানে সর্বোচ্চ ১০টি Gemini API Key যুক্ত করতে পারেন। সিস্টেম অটোমেটিক একটি কী শেষ হলে অন্যটি ব্যবহার করবে।
+                      </p>
+                    </div>
                   </div>
                   <div className="flex gap-3">
                     <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-amber-500/80 leading-relaxed">
-                      Important: Keys from the same project share the same quota. Use different projects for more capacity.
+                    <p className="text-[10px] text-amber-500/80 leading-relaxed font-bengali">
+                      মনে রাখবেন: একই প্রজেক্টের কী ব্যবহার করলে কোটা (Quota) কম পাওয়া যায়। বেশি ব্যবহারের জন্য আলাদা আলাদা প্রজেক্টের কী ব্যবহার করুন।
                     </p>
                   </div>
                   <a 
                     href="https://aistudio.google.com/app/apikey" 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors pt-1"
+                    className="flex items-center gap-2 text-xs font-bold text-emerald-400 hover:text-emerald-300 transition-colors pt-1 font-bengali"
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    Get API Key from Google AI Studio
+                    Google AI Studio থেকে আপনার Free API Key নিন
                   </a>
                 </div>
 
@@ -1398,21 +1584,35 @@ export default function App() {
 
                 {/* Input Section */}
                 <div className="space-y-3">
-                  <input 
-                    type="password"
-                    value={newKeyInput}
-                    onChange={(e) => setNewKeyInput(e.target.value)}
-                    placeholder="Enter Gemini API Key..."
-                    className="w-full bg-black/40 border border-white/5 rounded-2xl px-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-slate-700"
-                  />
+                  <div className="relative group">
+                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-emerald-500 transition-colors" />
+                    <input 
+                      type="password"
+                      value={newKeyInput}
+                      onChange={(e) => setNewKeyInput(e.target.value)}
+                      placeholder="এখানে API Key পেস্ট করুন..."
+                      className="w-full bg-black/40 border border-white/5 rounded-2xl pl-12 pr-5 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all placeholder:text-slate-700 font-mono"
+                    />
+                  </div>
                   <button 
                     onClick={addApiKey}
                     disabled={!newKeyInput.trim()}
-                    className="w-full bg-emerald-500 hover:bg-emerald-400 disabled:opacity-50 disabled:hover:bg-emerald-500 text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-emerald-500/20"
+                    className="relative w-full group overflow-hidden bg-gradient-to-r from-emerald-500 to-teal-400 disabled:from-slate-800 disabled:to-slate-900 disabled:text-slate-500 disabled:cursor-not-allowed text-emerald-950 font-bold py-4 rounded-2xl flex items-center justify-center gap-3 transition-all duration-300 shadow-[0_0_25px_rgba(52,211,153,0.2)] hover:shadow-[0_0_40px_rgba(52,211,153,0.4)] hover:-translate-y-1 active:translate-y-0 active:scale-95 border border-emerald-400/30 disabled:border-slate-800 font-bengali"
                   >
-                    <Plus className="w-5 h-5" />
-                    Add API Key
+                    <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent,rgba(255,255,255,0.2),transparent)] -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] pointer-events-none"></div>
+                    <div className="relative flex items-center justify-center gap-2">
+                      <div className="bg-emerald-950/20 p-1 rounded-full group-hover:rotate-90 transition-transform duration-300">
+                        <Plus className="w-4 h-4" />
+                      </div>
+                      <span className="text-[15px] tracking-wide">নতুন API Key যুক্ত করুন</span>
+                    </div>
                   </button>
+                </div>
+
+                {/* Key List Title */}
+                <div className="flex items-center justify-between text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2">
+                  <span>আপনার সেট করা কী গুলো</span>
+                  <span>{apiKeys.filter(k => k.trim() !== '').length}/10</span>
                 </div>
 
                 {/* Key List */}
@@ -1439,261 +1639,6 @@ export default function App() {
                       <p className="text-xs text-slate-600 font-medium">No API keys added yet</p>
                     </div>
                   )}
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Admin Panel / Master Control Center */}
-      <AnimatePresence>
-        {showAdminPanel && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/95 backdrop-blur-xl flex items-center justify-center z-[210] p-4 font-sans"
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 50, rotateX: 10 }}
-              animate={{ scale: 1, y: 0, rotateX: 0 }}
-              className="bg-[#0f0f12] border border-white/10 w-full max-w-4xl h-[85vh] rounded-[32px] shadow-2xl flex flex-col overflow-hidden relative"
-            >
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-cyan-500 via-indigo-600 to-purple-700" />
-              
-              {/* Sidebar Tabs */}
-              <div className="flex flex-1 overflow-hidden">
-                <div className="w-16 sm:w-64 bg-black/40 border-r border-white/5 flex flex-col p-4 sm:p-6 gap-6">
-                  <div className="flex items-center gap-3 mb-4 overflow-hidden">
-                    <div className="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center shrink-0">
-                      <Unlock className="w-5 h-5 text-white" />
-                    </div>
-                    <div className="hidden sm:block">
-                      <h2 className="text-sm font-black text-white uppercase tracking-widest">Master Node</h2>
-                      <div className="flex items-center gap-2 text-[10px] text-indigo-400 font-bold uppercase">
-                        <span className="w-1.5 h-1.5 rounded-full bg-indigo-400 animate-pulse" />
-                        A1-Authorized
-                      </div>
-                    </div>
-                  </div>
-
-                  <nav className="flex flex-col gap-2">
-                    <button 
-                      onClick={() => setAdminTab('config')}
-                      className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold w-full transition-all ${adminTab === 'config' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'hover:bg-white/5 text-slate-500 hover:text-slate-200'}`}
-                    >
-                      <Cpu className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Engine Config</span>
-                    </button>
-                    <button 
-                      onClick={() => setAdminTab('logs')}
-                      className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold w-full transition-all ${adminTab === 'logs' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'hover:bg-white/5 text-slate-500 hover:text-slate-200'}`}
-                    >
-                      <Terminal className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">System Logs</span>
-                    </button>
-                    <button 
-                      onClick={() => setAdminTab('data')}
-                      className={`flex items-center gap-3 p-3 rounded-xl text-sm font-bold w-full transition-all ${adminTab === 'data' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'hover:bg-white/5 text-slate-500 hover:text-slate-200'}`}
-                    >
-                      <Database className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Data Management</span>
-                    </button>
-                  </nav>
-
-                  <div className="mt-auto pt-6 border-t border-white/5">
-                    <button 
-                      onClick={() => setShowAdminPanel(false)}
-                      className="flex items-center gap-3 p-3 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white text-sm font-bold w-full transition-all"
-                    >
-                      <X className="w-4 h-4 shrink-0" />
-                      <span className="hidden sm:inline">Close Node</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Main Content */}
-                <div className="flex-1 overflow-y-auto p-4 sm:p-8 custom-scrollbar space-y-8 bg-gradient-to-br from-indigo-500/5 to-transparent">
-                  {adminTab === 'config' && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-                      <header>
-                        <h1 className="text-2xl font-black text-white tracking-tight mb-2">Master Configuration</h1>
-                        <p className="text-sm text-slate-400 font-medium">Override system parameters and adjust neural weights.</p>
-                      </header>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        {/* Engine Settings */}
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">AI Model Instance</label>
-                            <select 
-                              value={selectedModel}
-                              onChange={(e) => setSelectedModel(e.target.value)}
-                              className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-indigo-500/50 appearance-none cursor-pointer"
-                            >
-                              <option value="gemini-2.5-flash-preview-tts">Gemini 2.5 Flash TTS (Preview)</option>
-                              <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast)</option>
-                              <option value="gemini-1.5-pro">Gemini 1.5 Pro (Deep Intelligence)</option>
-                              <option value="gemini-2.0-flash-exp">Gemini 2.0 Flash (Experimental)</option>
-                            </select>
-                            <p className="text-[8px] text-amber-500 font-bold uppercase ml-1">Note: Only TTS-specific models support direct audio modality.</p>
-                          </div>
-
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Neural Quality Instruction</label>
-                            <textarea 
-                              value={qualityPrompt}
-                              onChange={(e) => setQualityPrompt(e.target.value)}
-                              rows={4}
-                              className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-xs font-medium text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none font-mono"
-                            />
-                          </div>
-                        </div>
-
-                        {/* Acting Settings */}
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] ml-1">Character Performance Instruction (Cartoon)</label>
-                            <textarea 
-                              value={systemPrompt}
-                              onChange={(e) => setSystemPrompt(e.target.value)}
-                              rows={7}
-                              className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-xs font-medium text-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 resize-none font-mono"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {adminTab === 'logs' && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                      <header>
-                        <h1 className="text-2xl font-black text-white tracking-tight mb-2">Neural Link Logs</h1>
-                        <p className="text-sm text-slate-400 font-medium">Real-time stream of all API activity and system events.</p>
-                      </header>
-                      
-                      <div className="bg-black/60 border border-white/10 rounded-[24px] overflow-hidden shadow-2xl">
-                        <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-                            <span className="text-[10px] font-black text-white uppercase tracking-widest">Live Stream</span>
-                          </div>
-                          <button 
-                            onClick={() => setSystemLogs([])}
-                            className="px-3 py-1.5 rounded-lg bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest hover:bg-rose-500/20 transition-all"
-                          >
-                            Purge
-                          </button>
-                        </div>
-                        <div className="h-[400px] overflow-y-auto p-6 font-mono text-[11px] space-y-3 custom-scrollbar bg-black/40">
-                          {systemLogs.length === 0 ? (
-                            <div className="text-slate-700 italic flex flex-col items-center justify-center h-full gap-4">
-                              <Terminal className="w-8 h-8 opacity-20" />
-                              Ambient monitoring active. No packets captured.
-                            </div>
-                          ) : (
-                            systemLogs.map((log) => (
-                              <div key={log.id} className="flex gap-4 group">
-                                <span className="text-slate-600 shrink-0 select-none">[{log.time}]</span>
-                                <span className={`uppercase font-black shrink-0 ${
-                                  log.type === 'error' ? 'text-rose-500' :
-                                  log.type === 'request' ? 'text-amber-500' :
-                                  log.type === 'response' ? 'text-cyan-500' :
-                                  'text-indigo-400'
-                                }`}>
-                                  {log.type}
-                                </span>
-                                <span className="text-slate-400 break-all group-hover:text-slate-200 transition-colors">{log.message}</span>
-                              </div>
-                            ))
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-
-                  {adminTab === 'data' && (
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                      <header>
-                        <h1 className="text-2xl font-black text-white tracking-tight mb-2">Memory Management</h1>
-                        <p className="text-sm text-slate-400 font-medium">Export, import, or wipe local application metadata.</p>
-                      </header>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                        <div className="glass-panel p-6 border-white/5 space-y-4">
-                          <h3 className="text-xs font-black text-white uppercase tracking-widest">Backup & Export</h3>
-                          <p className="text-xs text-slate-500 leading-relaxed">Save all generations, settings, and API configuration to a JSON file for local archival.</p>
-                          <button 
-                            onClick={() => {
-                              const data = {
-                                history,
-                                apiKeys,
-                                auphonicToken,
-                                isAuphonicEnabled,
-                                isCartoonMode,
-                                settings: {
-                                  selVoice,
-                                  selEmotion,
-                                  speed,
-                                  pitch,
-                                  volumeBoost,
-                                  clarity,
-                                  warmth,
-                                  systemPrompt,
-                                  qualityPrompt,
-                                  selectedModel
-                                }
-                              };
-                              const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-                              const url = URL.createObjectURL(blob);
-                              const a = document.createElement('a');
-                              a.href = url;
-                              a.download = `genvoice_backup_${Date.now()}.json`;
-                              a.click();
-                              showStatus('System backup exported!', 'success');
-                            }}
-                            className="w-full py-4 bg-indigo-500 hover:bg-indigo-400 text-white font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2 shadow-lg shadow-indigo-500/20"
-                          >
-                            <Download className="w-4 h-4" /> Download Backup.json
-                          </button>
-                        </div>
-
-                        <div className="glass-panel p-6 border-white/5 space-y-4">
-                          <h3 className="text-xs font-black text-white uppercase tracking-widest">Master Wipe</h3>
-                          <p className="text-xs text-slate-500 leading-relaxed">Irreversibly clear all local storage data. This will reset the application to its factory state.</p>
-                          <button 
-                            onClick={() => {
-                              if (window.confirm('IRREVERSIBLE ACTION: Are you absolutely sure you want to WIPE all data?')) {
-                                localStorage.clear();
-                                window.location.reload();
-                              }
-                            }}
-                            className="w-full py-4 bg-rose-500/10 hover:bg-rose-500 text-rose-500 hover:text-white font-bold rounded-2xl text-xs transition-all flex items-center justify-center gap-2 border border-rose-500/20"
-                          >
-                            <Trash2 className="w-4 h-4" /> Factory Reset App
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  
-                  {/* Data Management Sidebar-like footer for stats */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6">
-                    <div className="p-4 bg-white/5 border border-white/5 rounded-2xl text-center">
-                      <div className="text-lg font-black text-white">{history.length}</div>
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Records</div>
-                    </div>
-                    <div className="p-4 bg-white/5 border border-white/5 rounded-2xl text-center">
-                      <div className="text-lg font-black text-white capitalize">{serverStatus?.mode || 'Vite SPA'}</div>
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Environment</div>
-                    </div>
-                    <div className="p-4 bg-white/5 border border-white/5 rounded-2xl text-center">
-                      <div className="text-lg font-black text-white">{selectedModel.split('-')[1] || 'Flash'}</div>
-                      <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Current Tier</div>
-                    </div>
-                  </div>
                 </div>
               </div>
             </motion.div>

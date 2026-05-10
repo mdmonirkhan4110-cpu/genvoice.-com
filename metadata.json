@@ -1,5 +1,5 @@
 {
-  "name": "GenVoice - Gemini TTS",
-  "description": "An emotional Text-to-Speech application powered by Gemini 2.5 Flash TTS.",
+  "name": "GenVoice Cartoon AI - Gemini TTS",
+  "description": "Professional Text-to-Speech specifically designed for cartoon videos, animation scripts, and emotional voice acting. Powered by Gemini Flash TTS with 40+ emotional character presets.",
   "requestFramePermissions": []
 }
