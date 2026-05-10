@@ -12,7 +12,7 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+        includeAssets: ['icon.svg'],
         manifest: {
           name: 'GenVoice - Neural TTS',
           short_name: 'GenVoice',
@@ -25,19 +25,19 @@ export default defineConfig(({mode}) => {
           categories: ['utilities', 'productivity', 'multimedia'],
           icons: [
             {
-              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              src: 'icon.svg',
               sizes: '192x192',
-              type: 'image/png'
+              type: 'image/svg+xml'
             },
             {
-              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              src: 'icon.svg',
               sizes: '512x512',
-              type: 'image/png'
+              type: 'image/svg+xml'
             },
             {
-              src: 'https://cdn-icons-png.flaticon.com/512/3659/3659898.png',
+              src: 'icon.svg',
               sizes: '512x512',
-              type: 'image/png',
+              type: 'image/svg+xml',
               purpose: 'maskable'
             }
           ]
