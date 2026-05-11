@@ -206,6 +206,11 @@ const EMOTIONS = [
   { id: 'cartoon_happy', name: 'Cartoon Joy', icon: '🐣', color: 'yellow', desc: 'Anime', prompt: 'Speak with an exaggerated, high-pitched, bubbly cartoon character voice. Be very expressive.' },
   { id: 'cartoon_angry', name: 'Cartoon Fury', icon: '👹', color: 'red', desc: 'Dramatic', prompt: 'Speak like a funny cartoon villain who is very angry. Use exaggerated emphasis on words.' },
   { id: 'cartoon_scared', name: 'Cartoon Panic', icon: '👻', color: 'purple', desc: 'Hilarious', prompt: 'Speak like a cartoon character who is completely panicking and trembling. High energy and jittery.' },
+  { id: 'cartoon_crying', name: 'Cartoon Crying', icon: '😭', color: 'blue', desc: 'Sad', prompt: 'Speak like a cartoon character crying uncontrollably with dramatic sobs and wails.' },
+  { id: 'cartoon_evil_plan', name: 'Evil Plan', icon: '😈', color: 'indigo', desc: 'Sneaky', prompt: 'Speak like a cartoon villain explaining their brilliant, evil master plan in a low, sneaky voice.' },
+  { id: 'cartoon_hyper', name: 'Hyperactive', icon: '⚡', color: 'yellow', desc: 'Fast', prompt: 'Speak like an extremely hyperactive cartoon character. Talk very fast with boundless energy.' },
+  { id: 'cartoon_sleepy', name: 'Sleepyhead', icon: '😴', color: 'slate', desc: 'Tired', prompt: 'Speak like a cartoon character struggling to stay awake, yawning frequently.' },
+  { id: 'cartoon_confused', name: 'Confused', icon: '😵‍💫', color: 'fuchsia', desc: 'Dizzy', prompt: 'Speak like a cartoon character who just got hit on the head and is completely confused and dizzy.' },
   { id: 'monster', name: 'Monster', icon: '👹', color: 'red', desc: 'Beast', prompt: 'Speak with a deep, growling, monstrous voice. Very low pitch and terrifying.' },
   { id: 'child', name: 'Child', icon: '👶', color: 'sky', desc: 'Cute', prompt: 'Speak with a high-pitched, innocent, and sweet child voice. Pure and soft.' },
   { id: 'alien', name: 'Alien', icon: '👽', color: 'lime', desc: 'Unique', prompt: 'Speak with a strange, warbling, extraterrestrial voice. Use unusual inflections.' },
@@ -307,6 +312,15 @@ export default function App() {
     const envKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : '';
     return envKey ? [envKey] : [''];
   });
+  
+  const [apiDomain, setApiDomain] = useState<string>(() => {
+    return localStorage.getItem('genvoice_api_domain') || 'generativelanguage.googleapis.com';
+  });
+  
+  useEffect(() => {
+    localStorage.setItem('genvoice_api_domain', apiDomain);
+  }, [apiDomain]);
+
   const [auphonicToken, setAuphonicToken] = useState<string>(() => localStorage.getItem('genvoice_auphonic_token') || '');
   const [isAuphonicEnabled, setIsAuphonicEnabled] = useState<boolean>(() => {
     const saved = localStorage.getItem('genvoice_auphonic_enabled');
@@ -580,7 +594,9 @@ export default function App() {
 
   const getValidKey = () => {
     const validKeys = apiKeys.filter(k => k.trim());
-    if (validKeys.length === 0) return null;
+    const sysKey = import.meta.env.VITE_GEMINI_API_KEY;
+    
+    if (validKeys.length === 0) return sysKey || null;
     
     const currentKey = apiKeys[activeKeyIndex];
     if (!currentKey || currentKey.trim() === '') {
@@ -696,24 +712,31 @@ export default function App() {
         setGenerationStep(2); // Selecting Voice & Emotion
         
         let emotionInstruction = customEmotion.trim() ? `Speak with a ${customEmotion} tone` : (emotion?.prompt || 'Speak naturally');
-        const qualityInstruction = "Deliver the speech with a highly natural, human-like, expressive, and conversational tone, avoiding any robotic cadence.";
+        const qualityInstruction = "CRITICAL AUDIO REQUIREMENT: The output MUST be pristine, broadcast-level studio quality. ZERO background noise, ZERO static, ZERO metallic or robotic artifacts, and absolutely NO audio clipping or distortion. Speak clearly with perfect articulation and professional microphone etiquette.";
         
-        let prompt = `${emotionInstruction}. ${qualityInstruction}: ${text}`;
+        let prompt = `${emotionInstruction}. ${qualityInstruction}\n\nText: ${text}`;
         
         if (isCartoonMode) {
-          const cartoonAdvice = "ACTING MODE: You are a world-class cartoon voice actor. This is for an animation script. Use extreme vocal range, exaggerated pitch variations, and high character energy. Do not sound like a machine; sound like a living character with personality, quirks, and expressive breath patterns.";
-          prompt = `${emotionInstruction}. ${cartoonAdvice}. ${qualityInstruction}: ${text}`;
+          const cartoonAdvice = "ACTING DIRECTIVE: You are a professional cartoon voice actor in a premium soundproof studio. Deliver the line with vivid, animated character personality. DO NOT over-modulate, scream, or clip the audio. The voice MUST be ultra-clean, smooth, and instantly ready for a cinematic animation without post-processing.";
+          prompt = `${emotionInstruction}. ${cartoonAdvice}. ${qualityInstruction}\n\nText: ${text}`;
         }
 
         setGenerationStep(3); // Synthesizing Audio
         
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${key}`, {
+        const cleanDomain = apiDomain.replace(/^https?:\/\//, '').replace(/\/$/, '').trim();
+        const response = await fetch(`https://${cleanDomain}/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${key}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
+            safetySettings: [
+              { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+              { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+            ],
             generationConfig: {
               responseModalities: ["AUDIO"],
               speechConfig: {
@@ -731,7 +754,16 @@ export default function App() {
         }
 
         const data = await response.json();
-        const inlineData = data.candidates?.[0]?.content?.parts?.[0]?.inlineData;
+        
+        if (data.promptFeedback?.blockReason) {
+            throw new Error(`Content Blocked by AI Safety: ${data.promptFeedback.blockReason}`);
+        }
+        if (data.candidates?.[0]?.finishReason === 'SAFETY') {
+            throw new Error("Content Blocked: The generated audio triggered safety filters.");
+        }
+
+        const partWithAudio = data.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData);
+        const inlineData = partWithAudio?.inlineData;
         if (inlineData && inlineData.data) {
           return { data: inlineData.data, mimeType: inlineData.mimeType || '' };
         }
@@ -943,7 +975,7 @@ export default function App() {
           </button>
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[10px] uppercase tracking-widest text-indigo-400 font-bold">
             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            2.0 Flash Engine
+            2.5 Flash TTS
           </div>
         </div>
       </header>
@@ -1104,27 +1136,32 @@ export default function App() {
                     ))}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 max-h-64 overflow-y-auto pr-2 custom-scrollbar p-1">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 max-h-[320px] overflow-y-auto pr-2 custom-scrollbar p-1">
                   {filteredVoices.map((v) => (
                     <button
                       key={v.name}
                       onClick={() => setSelVoice(v.name)}
-                      className={`relative flex flex-col items-center justify-center p-3 sm:p-4 rounded-2xl transition-all duration-300 transform ${
+                      className={`relative overflow-hidden flex flex-col items-start p-3 rounded-2xl transition-all duration-300 border backdrop-blur-md ${
                         selVoice === v.name 
-                        ? 'bg-gradient-to-br from-indigo-500 to-indigo-700 text-white shadow-[0_8px_20px_rgba(79,70,229,0.4),inset_0_2px_4px_rgba(255,255,255,0.3)] scale-[1.02] -translate-y-1 border-t border-indigo-400' 
-                        : 'bg-gradient-to-br from-white/10 to-white/5 text-slate-300 border border-white/10 shadow-[0_4px_6px_rgba(0,0,0,0.2),inset_0_1px_1px_rgba(255,255,255,0.1)] hover:scale-[1.01] hover:-translate-y-0.5'
+                        ? 'bg-gradient-to-br from-indigo-500/80 via-purple-500/80 to-indigo-600/80 text-white border-white/20 shadow-[0_0_15px_rgba(99,102,241,0.3)] ring-1 ring-white/30' 
+                        : 'bg-[#1a1a24] text-slate-300 border-white/5 hover:bg-[#232332] hover:border-white/10 hover:shadow-lg'
                       }`}
                     >
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-black/20 mb-2 shadow-inner">
-                        <Mic2 className={`w-4 h-4 ${selVoice === v.name ? 'text-white' : 'text-indigo-400'}`} />
-                      </div>
-                      <div className="text-center">
-                        <div className={`text-xs font-black uppercase tracking-wider ${selVoice === v.name ? 'text-white' : 'text-slate-200'}`}>{v.name}</div>
-                        <div className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${selVoice === v.name ? 'text-indigo-200' : 'text-slate-500'}`}>{v.style}</div>
-                      </div>
                       {selVoice === v.name && (
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full border-2 border-slate-900 shadow-lg" />
+                         <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent,rgba(255,255,255,0.1),transparent)] -translate-x-[150%] animate-[shimmer_2.5s_infinite] pointer-events-none"></div>
                       )}
+                      <div className="flex items-center justify-between w-full mb-2">
+                        <div className={`p-1.5 rounded-xl ${selVoice === v.name ? 'bg-white/20 text-white shadow-inner' : 'bg-black/40 text-indigo-400'}`}>
+                          <Mic2 className="w-3.5 h-3.5" />
+                        </div>
+                        {selVoice === v.name && (
+                          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,1)] animate-pulse" />
+                        )}
+                      </div>
+                      <div className="text-left w-full">
+                        <div className={`text-[11px] font-black tracking-wide truncate ${selVoice === v.name ? 'text-white' : 'text-slate-100'}`}>{v.name}</div>
+                        <div className={`text-[8px] font-medium uppercase tracking-widest mt-0.5 truncate ${selVoice === v.name ? 'text-indigo-200' : 'text-slate-500'}`}>{v.style}</div>
+                      </div>
                     </button>
                   ))}
                 </div>
@@ -1306,22 +1343,6 @@ export default function App() {
                   )}
                 </div>
 
-                {/* Support Section */}
-                <div className="mt-6 space-y-4">
-                  <div className="bg-gradient-to-br from-indigo-500/10 to-purple-500/10 border border-indigo-500/20 rounded-2xl p-6 text-center shadow-[0_0_40px_rgba(99,102,241,0.1)]">
-                    <div className="flex flex-col items-center justify-center mb-4 group-hover:scale-105 transition-transform duration-500">
-                      <div className="w-12 h-12 bg-indigo-500/20 rounded-full flex items-center justify-center mb-3">
-                         <Coffee className="w-6 h-6 text-indigo-400 group-hover:text-indigo-300" />
-                      </div>
-                      <h4 className="text-sm font-bold text-slate-200 mb-1 font-bengali">ডেভেলপার সাপোর্ট</h4>
-                      <p className="text-[10px] text-slate-400 font-bengali">এই টুলটি ভালো লাগলে আমাকে কফি খাওয়াতে পারেন!</p>
-                    </div>
-                    <button className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-400 hover:to-purple-400 text-white text-xs font-bold transition-all shadow-lg shadow-indigo-500/25">
-                      Support Creator
-                    </button>
-                  </div>
-                </div>
-
               {/* Stats */}
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <div className="glass-panel p-4 text-center border-white/5">
@@ -1447,12 +1468,12 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex items-start justify-center z-[120] p-4 overflow-y-auto"
+            className="fixed inset-0 bg-slate-950/95 backdrop-blur-md flex items-start justify-center z-[120] p-4 sm:p-6 overflow-y-auto"
           >
             <motion.div 
               initial={{ scale: 0.95, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-[#1a1b1e] border border-white/5 max-w-md w-full rounded-[24px] sm:rounded-[32px] shadow-2xl my-auto overflow-hidden"
+              className="bg-[#1a1b1e] border border-white/5 max-w-md w-full rounded-[24px] sm:rounded-[32px] shadow-2xl relative my-8 overflow-hidden shrink-0"
             >
               {/* Modal Header */}
               <div className="p-4 sm:p-6 flex items-center justify-between">
@@ -1482,7 +1503,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="px-4 sm:px-6 pb-6 sm:pb-8 space-y-4 sm:space-y-6">
+              <div className="px-4 sm:px-6 pb-6 sm:pb-8 space-y-4 sm:space-y-6 max-h-[75vh] overflow-y-auto custom-scrollbar">
                 {/* PWA Install Hub */}
                 {!isStandalone && (
                   <motion.div 
@@ -1607,6 +1628,18 @@ export default function App() {
                       <span className="text-[15px] tracking-wide">নতুন API Key যুক্ত করুন</span>
                     </div>
                   </button>
+
+                  <div className="pt-4 border-t border-white/5 space-y-3">
+                    <label className="text-xs font-bold text-slate-400 font-bengali block">কাস্টম এপিআই ডোমেইন (Custom API Domain)</label>
+                    <input 
+                      type="text"
+                      value={apiDomain}
+                      onChange={(e) => setApiDomain(e.target.value)}
+                      placeholder="generativelanguage.googleapis.com"
+                      className="w-full bg-black/40 border border-white/5 rounded-2xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/50 transition-all text-slate-300 font-mono"
+                    />
+                    <p className="text-[10px] text-slate-500 font-bengali">যদি আপনি কোনো Proxy ব্যবহার করেন, তাহলে এখানে ডোমেইন দিন। ডিফল্ট: generativelanguage.googleapis.com</p>
+                  </div>
                 </div>
 
                 {/* Key List Title */}
