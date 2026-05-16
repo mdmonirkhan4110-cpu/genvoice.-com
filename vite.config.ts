@@ -14,8 +14,8 @@ export default defineConfig(({mode}) => {
         registerType: 'autoUpdate',
         includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
         manifest: {
-          name: 'GenVoice - Neural TTS',
-          short_name: 'GenVoice',
+          name: 'Ai cartoon voice',
+          short_name: 'Ai Voice',
           description: 'Emotional Text-to-Speech powered by Gemini 2.5 Flash',
           theme_color: '#6366f1',
           background_color: '#0a0a0a',

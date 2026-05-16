@@ -223,6 +223,8 @@
         // --- Main App ---
         function App() {
             const [apiKeys, setApiKeys] = useState(['']);
+            const [auphonicToken, setAuphonicToken] = useState('');
+            const [isAuphonicEnabled, setIsAuphonicEnabled] = useState(true);
             const [activeKeyIndex, setActiveKeyIndex] = useState(0);
             const [showKeyManager, setShowKeyManager] = useState(false);
             const [text, setText] = useState('');
@@ -261,6 +263,12 @@
                     } catch (e) {}
                 }
 
+                const savedAuphonicToken = localStorage.getItem('genvoice_auphonic_token');
+                if (savedAuphonicToken) setAuphonicToken(savedAuphonicToken);
+
+                const savedAuphonicEnabled = localStorage.getItem('genvoice_auphonic_enabled');
+                if (savedAuphonicEnabled !== null) setIsAuphonicEnabled(savedAuphonicEnabled === 'true');
+
                 const savedHistory = localStorage.getItem('genvoice_history');
                 if (savedHistory) {
                     try { setHistory(JSON.parse(savedHistory)); } catch (e) {}
@@ -274,6 +282,14 @@
             useEffect(() => {
                 localStorage.setItem('genvoice_api_keys', JSON.stringify(apiKeys));
             }, [apiKeys]);
+
+            useEffect(() => {
+                localStorage.setItem('genvoice_auphonic_token', auphonicToken);
+            }, [auphonicToken]);
+
+            useEffect(() => {
+                localStorage.setItem('genvoice_auphonic_enabled', isAuphonicEnabled.toString());
+            }, [isAuphonicEnabled]);
 
             const showStatus = (text, type = 'info') => {
                 setStatusMsg({ text, type });
@@ -293,6 +309,59 @@
             const getValidKey = () => {
                 const validKeys = apiKeys.filter(k => k.trim());
                 return validKeys.length > 0 ? validKeys[activeKeyIndex % validKeys.length] : null;
+            };
+
+            const processWithAuphonic = async (wavBlob) => {
+                if (!isAuphonicEnabled || !auphonicToken) return wavBlob;
+                try {
+                    setGenerationStep(6);
+                    const createResponse = await fetch('https://auphonic.com/api/productions.json', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${auphonicToken}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            metadata: { title: `GenVoice_${Date.now()}` },
+                            algorithms: { denoise: true, normloudness: true, dynamic_range_compressor: true, highpass_filter: true },
+                            output_files: [{ format: 'wav' }]
+                        })
+                    });
+                    const createData = await createResponse.json();
+                    const uuid = createData.data.uuid;
+
+                    const formData = new FormData();
+                    formData.append('input_file', wavBlob, 'input.wav');
+                    await fetch(`https://auphonic.com/api/production/${uuid}/upload.json`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${auphonicToken}` },
+                        body: formData
+                    });
+
+                    await fetch(`https://auphonic.com/api/production/${uuid}/start.json`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${auphonicToken}` }
+                    });
+
+                    let status = 'started';
+                    let resultUrl = '';
+                    while (status !== 'done' && status !== 'error') {
+                        await new Promise(r => setTimeout(r, 3000));
+                        const res = await fetch(`https://auphonic.com/api/production/${uuid}.json`, {
+                            headers: { 'Authorization': `Bearer ${auphonicToken}` }
+                        });
+                        const data = await res.json();
+                        status = data.data.status_string.toLowerCase();
+                        if (status === 'done') resultUrl = data.data.output_files[0].download_url;
+                        if (status === 'error') throw new Error('Auphonic error');
+                    }
+
+                    const downloadRes = await fetch(resultUrl, { headers: { 'Authorization': `Bearer ${auphonicToken}` } });
+                    return await downloadRes.blob();
+                } catch (err) {
+                    showStatus('Auphonic failed, using original', 'error');
+                    return wavBlob;
+                }
             };
 
             const handleGenerate = async () => {
@@ -351,6 +420,10 @@
 
                     setGenerationStep(4);
                     let finalBlob = createWavBlob(bytes, 24000, 1, 16);
+
+                    if (isAuphonicEnabled && auphonicToken) {
+                        finalBlob = await processWithAuphonic(finalBlob);
+                    }
 
                     const url = URL.createObjectURL(finalBlob);
                     setAudioUrl(url);
@@ -439,6 +512,21 @@
                                 </div>
                             </section>
 
+                            <section className="glass-panel p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                                        <Icon name="Settings2" className="w-4 h-4 text-emerald-400" />
+                                        Audio Processing
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setIsAuphonicEnabled(!isAuphonicEnabled)} className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all ${isAuphonicEnabled ? 'bg-cyan-500/10 border-cyan-500/50 text-cyan-400' : 'bg-white/5 border-white/10 text-slate-400'}`}>
+                                            <Icon name="Waves" className="w-4 h-4" />
+                                            <span className="text-[10px] font-bold uppercase">{isAuphonicEnabled ? 'Auphonic ON' : 'Auphonic OFF'}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </section>
+
                             <button onClick={handleGenerate} disabled={isGenerating} className="w-full py-5 rounded-2xl font-bold text-lg bg-gradient-to-r from-cyan-500 to-indigo-600 shadow-xl flex items-center justify-center gap-3 disabled:opacity-50">
                                 {isGenerating ? <Icon name="Loader2" className="w-6 h-6 animate-spin" /> : <Icon name="Wand2" className="w-6 h-6" />}
                                 {isGenerating ? 'Synthesizing...' : 'Generate Speech'}
@@ -496,6 +584,12 @@
                                         ))}
                                     </div>
                                 </div>
+
+                                <div className="mb-6">
+                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Auphonic API Token</label>
+                                    <input type="password" value={auphonicToken} onChange={e => setAuphonicToken(e.target.value)} placeholder="Enter Auphonic Access Token..." className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm mb-2" />
+                                    <p className="text-[9px] text-slate-500">Get token from <a href="https://auphonic.com/api/" target="_blank" className="text-cyan-400">auphonic.com/api/</a></p>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -512,7 +606,7 @@
                             <div className="text-center">
                                 <Icon name="Loader2" className="w-12 h-12 animate-spin text-cyan-400 mx-auto mb-4" />
                                 <p className="text-sm font-bold">Synthesizing Voice...</p>
-                                <p className="text-[10px] text-slate-500 mt-2">Step {generationStep} of 5</p>
+                                <p className="text-[10px] text-slate-500 mt-2">Step {generationStep} of {isAuphonicEnabled ? 6 : 5}</p>
                             </div>
                         </div>
                     )}

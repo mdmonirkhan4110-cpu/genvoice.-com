@@ -34,7 +34,8 @@ import {
   Plus,
   Mic2,
   ChevronDown,
-  RefreshCw
+  RefreshCw,
+  Waves
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -234,7 +235,7 @@ interface HistoryItem {
 
 // --- Helper Functions ---
 
-function createWavBlob(pcmData: Uint8Array, sampleRate: number, channels: number, bitsPerSample: number, volumeBoost: number = 1.0, clarity: number = 50, warmth: number = 50) {
+function createWavBlob(pcmData: Uint8Array, sampleRate: number, channels: number, bitsPerSample: number) {
   const headerSize = 44;
   const dataSize = pcmData.length;
   const buffer = new ArrayBuffer(headerSize + dataSize);
@@ -253,74 +254,43 @@ function createWavBlob(pcmData: Uint8Array, sampleRate: number, channels: number
   
   // fmt sub-chunk
   writeString(view, 12, 'fmt ');
-  view.setUint32(16, 16, true);
-  view.setUint16(20, 1, true);
+  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
+  view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
   view.setUint16(22, channels, true);
   view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * channels * bitsPerSample / 8, true);
-  view.setUint16(32, channels * bitsPerSample / 8, true);
+  view.setUint32(28, sampleRate * channels * bitsPerSample / 8, true); // ByteRate
+  view.setUint16(32, channels * bitsPerSample / 8, true); // BlockAlign
   view.setUint16(34, bitsPerSample, true);
   
   // data sub-chunk
   writeString(view, 36, 'data');
   view.setUint32(40, dataSize, true);
   
-  // 1. Process PCM Data
-  const numSamples = pcmData.length / 2;
-  const samples = new Float32Array(numSamples);
-  let sum = 0;
-  
+  // Copy and amplify PCM data manually
+  // Gemini TTS tends to be quiet, applying a 3.0x software gain
+  const VOLUME_MULTIPLIER = 3.0;
   for (let i = 0; i < pcmData.length; i += 2) {
-    let sample = (pcmData[i + 1] << 8) | pcmData[i];
+    const lowByte = pcmData[i];
+    const highByte = pcmData[i + 1];
+    
+    // Convert Little-Endian to 16-bit signed integer
+    let sample = (highByte << 8) | lowByte;
     if (sample >= 32768) sample -= 65536;
-    const val = sample / 32768.0;
-    samples[i/2] = val;
-    sum += val;
-  }
 
-  // 2. DC Offset Removal
-  const dcOffset = sum / numSamples;
-  let maxPeak = 0;
-  for (let i = 0; i < numSamples; i++) {
-    samples[i] -= dcOffset;
-    const abs = Math.abs(samples[i]);
-    if (abs > maxPeak) maxPeak = abs;
-  }
+    // Apply digital gain
+    sample = Math.floor(sample * VOLUME_MULTIPLIER);
 
-  // 3. Audio Enhancement Parameters
-  const clarityFactor = (clarity - 50) / 100; // -0.5 to 0.5
-  const warmthFactor = (warmth - 50) / 100;   // -0.5 to 0.5
-  
-  // 4. Normalization and Scaling
-  const targetPeak = 0.88; 
-  const normFactor = maxPeak > 0 ? targetPeak / maxPeak : 1.0;
-  const finalGain = normFactor * volumeBoost;
+    // Hard clip to avoid integer overflow static
+    if (sample > 32767) sample = 32767;
+    if (sample < -32768) sample = -32768;
 
-  let lpPrev = 0;
-  // Subtle Low Pass filtering to reduce digital harshness
-  // Clarity reduces filtering (closer to 1.0), warmth increases it (closer to 0.8)
-  const baseAlpha = 0.92;
-  const filterAlpha = Math.max(0.7, Math.min(0.99, baseAlpha - (warmthFactor * 0.1) + (clarityFactor * 0.05)));
+    // Convert back to 16-bit unsigned
+    let unsignedSample = sample;
+    if (unsignedSample < 0) unsignedSample += 65536;
 
-  // 5. Final Pass: Apply Gain + Soft Clip + Filter
-  for (let i = 0; i < numSamples; i++) {
-    let s = samples[i] * finalGain;
-
-    // Performance-optimized Soft-clipping
-    if (s > 1.0) s = 1.0;
-    else if (s < -1.0) s = -1.0;
-    else s = (3/2) * s - (1/2) * s * s * s;
-
-    // Apply Filter
-    s = lpPrev + filterAlpha * (s - lpPrev);
-    lpPrev = s;
-    
-    // Convert back to 16-bit
-    let intSample = Math.floor(s * 32767);
-    let unsignedSample = intSample < 0 ? intSample + 65536 : intSample;
-    
-    view.setUint8(44 + i * 2, unsignedSample & 0xFF);
-    view.setUint8(44 + (i * 2) + 1, (unsignedSample >> 8) & 0xFF);
+    // Write back into the new ArrayBuffer view directly by bypassing bytes.set
+    view.setUint8(44 + i, unsignedSample & 0xFF);
+    view.setUint8(44 + i + 1, (unsignedSample >> 8) & 0xFF);
   }
   
   return new Blob([buffer], { type: 'audio/wav' });
@@ -340,7 +310,7 @@ export default function App() {
       if (savedKey) return [savedKey];
     } catch (e) {}
     // Vite env variable check
-    const envKey = (import.meta as any).env ? (import.meta as any).env.VITE_GEMINI_API_KEY : '';
+    const envKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : '';
     return envKey ? [envKey] : [''];
   });
   
@@ -352,6 +322,11 @@ export default function App() {
     localStorage.setItem('genvoice_api_domain', apiDomain);
   }, [apiDomain]);
 
+  const [auphonicToken, setAuphonicToken] = useState<string>(() => localStorage.getItem('genvoice_auphonic_token') || '');
+  const [isAuphonicEnabled, setIsAuphonicEnabled] = useState<boolean>(() => {
+    const saved = localStorage.getItem('genvoice_auphonic_enabled');
+    return saved !== null ? saved === 'true' : false;
+  });
   const [activeKeyIndex, setActiveKeyIndex] = useState<number>(0);
   const [showKeyManager, setShowKeyManager] = useState<boolean>(false);
   const [text, setText] = useState<string>('');
@@ -455,6 +430,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('genvoice_api_keys', JSON.stringify(apiKeys));
   }, [apiKeys]);
+
+  useEffect(() => {
+    localStorage.setItem('genvoice_auphonic_token', auphonicToken);
+  }, [auphonicToken]);
+
+  useEffect(() => {
+    localStorage.setItem('genvoice_auphonic_enabled', isAuphonicEnabled.toString());
+  }, [isAuphonicEnabled]);
 
   useEffect(() => {
     localStorage.setItem('genvoice_cartoon_mode', isCartoonMode.toString());
@@ -612,7 +595,7 @@ export default function App() {
 
   const getValidKey = () => {
     const validKeys = apiKeys.filter(k => k.trim());
-    const sysKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
+    const sysKey = import.meta.env.VITE_GEMINI_API_KEY;
     
     if (validKeys.length === 0) return sysKey || null;
     
@@ -627,6 +610,109 @@ export default function App() {
     }
     
     return currentKey;
+  };
+
+  const processWithAuphonic = async (wavBlob: Blob): Promise<Blob> => {
+    if (!isAuphonicEnabled || !auphonicToken) return wavBlob;
+
+    try {
+      setGenerationStep(6); // Auphonic Processing
+      
+      // 1. Create Production
+      const createResponse = await fetch('https://auphonic.com/api/productions.json', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${auphonicToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          metadata: { title: `AiCartoonVoice_${Date.now()}` },
+          algorithms: {
+            denoise: true,
+            normloudness: true,
+            loudnesstarget: -12,
+            dynamic_range_compressor: true,
+            highpass_filter: false
+          },
+          output_files: [{ format: 'wav' }]
+        })
+      });
+
+      if (!createResponse.ok) {
+        const errorText = await createResponse.text();
+        let errorMsg = errorText;
+        try {
+          const errObj = JSON.parse(errorText);
+          errorMsg = errObj.error_message || errorText;
+        } catch(e) {}
+        throw new Error(`Create failed (${createResponse.status}): ${errorMsg}`);
+      }
+      const createData = await createResponse.json();
+      const uuid = createData.data.uuid;
+
+      // 2. Upload File
+      const formData = new FormData();
+      formData.append('input_file', wavBlob, 'input.wav');
+      
+      const uploadResponse = await fetch(`https://auphonic.com/api/production/${uuid}/upload.json`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${auphonicToken}` },
+        body: formData
+      });
+
+      if (!uploadResponse.ok) {
+        const errorText = await uploadResponse.text();
+        let errorMsg = errorText;
+        try {
+          const errObj = JSON.parse(errorText);
+          errorMsg = errObj.error_message || errorText;
+        } catch(e) {}
+        throw new Error(`Upload failed (${uploadResponse.status}): ${errorMsg}`);
+      }
+
+      // 3. Start Production
+      const startResponse = await fetch(`https://auphonic.com/api/production/${uuid}/start.json`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${auphonicToken}` }
+      });
+
+      if (!startResponse.ok) {
+        const errorText = await startResponse.text();
+        let errorMsg = errorText;
+        try {
+          const errObj = JSON.parse(errorText);
+          errorMsg = errObj.error_message || errorText;
+        } catch(e) {}
+        throw new Error(`Start failed (${startResponse.status}): ${errorMsg}`);
+      }
+
+      // 4. Poll for completion
+      let status = 'started';
+      let resultUrl = '';
+      
+      while (status !== 'done' && status !== 'error') {
+        await new Promise(resolve => setTimeout(resolve, 3000));
+        const statusResponse = await fetch(`https://auphonic.com/api/production/${uuid}.json`, {
+          headers: { 'Authorization': `Bearer ${auphonicToken}` }
+        });
+        const statusData = await statusResponse.json();
+        status = statusData.data.status_string.toLowerCase();
+        if (status === 'done') {
+          resultUrl = statusData.data.output_files[0].download_url;
+        }
+        if (status === 'error') throw new Error('Auphonic processing error');
+      }
+
+      // 5. Download Result
+      const downloadResponse = await fetch(resultUrl, {
+        headers: { 'Authorization': `Bearer ${auphonicToken}` }
+      });
+      return await downloadResponse.blob();
+    } catch (err: any) {
+      console.error("Auphonic processing failed", err);
+      showStatus(`Auphonic error: ${err.message}. Using original audio.`, "error");
+      return wavBlob;
+    }
   };
 
   const handleGenerate = async () => {
@@ -754,11 +840,14 @@ export default function App() {
            finalBlob = new Blob([bytes], { type: 'audio/mp3' });
         } else {
            // Fallback to manually prepending WAV headers if it is raw PCM
-           // Gemini 2.x standard is 24000Hz PCM
-           const detectedRate = 24000;
-           finalBlob = createWavBlob(bytes, detectedRate, 1, 16, volumeBoost, clarity, warmth);
+           finalBlob = createWavBlob(bytes, 24000, 1, 16);
         }
 
+        // Auphonic Integration
+        if (isAuphonicEnabled && auphonicToken) {
+          finalBlob = await processWithAuphonic(finalBlob);
+        }
+        
         const url = URL.createObjectURL(finalBlob);
         setAudioUrl(url);
         
@@ -816,12 +905,12 @@ export default function App() {
       
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'GenVoice Audio',
+          title: 'Ai cartoon voice Audio',
           text: `Listen to this ${selEmotion} speech by ${VOICES.find(v => v.id === selVoice)?.name || selVoice}`,
           files: [file]
         });
       } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(`GenVoice: ${selEmotion} speech by ${VOICES.find(v => v.id === selVoice)?.name || selVoice}`);
+        await navigator.clipboard.writeText(`Ai cartoon voice: ${selEmotion} speech by ${VOICES.find(v => v.id === selVoice)?.name || selVoice}`);
         showStatus('Info copied to clipboard', 'success');
       } else {
         showStatus('Sharing not supported on this device', 'info');
@@ -888,7 +977,7 @@ export default function App() {
             <Activity className="text-white w-6 h-6 sm:w-7 sm:h-7" />
           </div>
           <div className="overflow-hidden">
-            <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight truncate">GenVoice</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight truncate">Ai cartoon voice</h1>
             <p className="text-[10px] sm:text-sm text-slate-400 font-medium truncate">Cartoon Optimized Voice Engine</p>
           </div>
         </motion.div>
@@ -1105,6 +1194,37 @@ export default function App() {
                       </div>
                     </button>
                   ))}
+                </div>
+              </motion.section>
+
+              {/* Advanced Settings */}
+              <motion.section 
+                whileHover={{ rotateY: 1, rotateX: 1, scale: 1.005 }}
+                transition={{ type: "spring", stiffness: 300 }}
+                className="glass-panel p-4 sm:p-6"
+              >
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
+                      <Settings2 className="w-4 h-4 text-emerald-400" />
+                      Audio Processing
+                    </label>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button 
+                      onClick={() => setIsAuphonicEnabled(!isAuphonicEnabled)}
+                      className={`flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg transition-all w-full sm:w-auto ${
+                        isAuphonicEnabled 
+                        ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' 
+                        : 'bg-white/5 text-slate-500 border border-white/5'
+                      }`}
+                    >
+                      <Waves className={`w-3.5 h-3.5 ${isAuphonicEnabled ? 'animate-pulse' : ''}`} />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">
+                        {isAuphonicEnabled ? 'Auphonic ON' : 'Auphonic OFF'}
+                      </span>
+                    </button>
+                  </div>
                 </div>
               </motion.section>
 
@@ -1340,7 +1460,8 @@ export default function App() {
                     { id: 2, label: 'Selecting Voice Profile' },
                     { id: 3, label: 'AI Neural Synthesis' },
                     { id: 4, label: 'Enhancing Audio Quality' },
-                    { id: 5, label: 'Finalizing Audio File' }
+                    { id: 5, label: 'Finalizing Audio File' },
+                    ...(isAuphonicEnabled ? [{ id: 6, label: 'Auphonic Post-Processing' }] : [])
                   ].map((step) => (
                     <div key={step.id} className="flex items-center gap-3">
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-500 ${
@@ -1483,6 +1604,35 @@ export default function App() {
                   </a>
                 </div>
 
+                {/* Auphonic Token Section */}
+                <div className="bg-cyan-500/5 border border-cyan-500/10 rounded-2xl p-4 space-y-3">
+                  <div className="flex gap-3">
+                    <Waves className="w-5 h-5 text-cyan-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-cyan-500/90 font-bold">Auphonic Integration</p>
+                      <p className="text-[10px] text-cyan-500/70 leading-relaxed">
+                        Advanced noise reduction and loudness normalization.
+                      </p>
+                    </div>
+                  </div>
+                  <input 
+                    type="password"
+                    value={auphonicToken}
+                    onChange={(e) => setAuphonicToken(e.target.value)}
+                    placeholder="Enter Auphonic Access Token..."
+                    className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-cyan-500/50 transition-all placeholder:text-slate-700"
+                  />
+                  <a 
+                    href="https://auphonic.com/api/" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-[10px] font-bold text-cyan-400 hover:text-cyan-300 transition-colors"
+                  >
+                    <ExternalLink className="w-3 h-3" />
+                    Get Token from Auphonic
+                  </a>
+                </div>
+
                 {/* Input Section */}
                 <div className="space-y-3">
                   <div className="relative group">
@@ -1591,7 +1741,7 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">ইনস্টলেশন গাইড</h3>
-                  <p className="text-xs text-slate-400">GenVoice Setup</p>
+                  <p className="text-xs text-slate-400">Ai cartoon voice Setup</p>
                 </div>
               </div>
 
