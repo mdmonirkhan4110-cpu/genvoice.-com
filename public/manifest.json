@@ -1,6 +1,6 @@
 {
-  "name": "Ai cartoon voice",
-  "short_name": "Ai Voice",
+  "name": "GenVoice Cartoon AI",
+  "short_name": "GenVoice",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#0a0a0a",

@@ -169,56 +169,145 @@ const VOICES = [
 ];
 
 const EMOTIONS = [
-  { id: 'neutral', name: 'স্বাভাবিক', icon: '😐', color: 'slate', desc: 'সাধারণ কার্টুন ভয়েস', prompt: 'Speak in a normal, animated cartoon character voice' },
-  { id: 'happy', name: 'খুশি/হাস্যকর', icon: '😂', color: 'yellow', desc: 'মজার খিলখিল হাসি', prompt: 'Speak in a very happy, exaggerated funny cartoon character voice with giggles' },
-  { id: 'sad', name: 'দুঃখিত/কান্না', icon: '😭', color: 'blue', desc: 'কান্নার সুর', prompt: 'Speak in a very sad, sobbing cartoon character voice, like crying childishly' },
-  { id: 'angry', name: 'খুব রাগী', icon: '😡', color: 'red', desc: 'তীব্র রাগ', prompt: 'Speak in an extremely angry, aggressive cartoon character voice' },
-  { id: 'excited', name: 'উত্তেজিত', icon: '🤩', color: 'pink', desc: 'লাফালাফি', prompt: 'Speak in an overly energetic and excited cartoon character voice' },
-  { id: 'scared', name: 'ভয় পাওয়া', icon: '😨', color: 'purple', desc: 'কাঁপা কাঁপা', prompt: 'Speak in a terrified, trembling cartoon character voice' },
-  { id: 'silly', name: 'বোকা/ফানি', icon: '🤪', color: 'orange', desc: 'মজার ভঙ্গি', prompt: 'Speak in a silly, goofy, and comical cartoon character voice' },
-  { id: 'arrogant', name: 'অহংকারী', icon: '😎', color: 'cyan', desc: 'গর্বিত ভাব', prompt: 'Speak in a boastful, arrogant, and snooty cartoon character voice' },
-  { id: 'mysterious', name: 'রহস্যময়', icon: '🕵️', color: 'violet', desc: 'চুপিচুপি', prompt: 'Speak in a sneaky, mysterious, whispering cartoon character voice' },
-  { id: 'heroic', name: 'বীরত্বপূর্ণ', icon: '🦸', color: 'emerald', desc: 'সাহসী সুর', prompt: 'Speak in a brave, heroic, and confident cartoon character voice' },
-  { id: 'evil', name: 'ভিলেন/শয়তান', icon: '😈', color: 'rose', desc: 'কুটিল হাসি', prompt: 'Speak in an evil, sinister, villainous cartoon character voice with a wicked tone' },
-  { id: 'annoyed', name: 'বিরক্ত', icon: '😒', color: 'lime', desc: 'ঘ্যানঘ্যান', prompt: 'Speak in an annoyed, complaining cartoon character voice' },
-  { id: 'surprised', name: 'অবাক', icon: '😲', color: 'indigo', desc: 'বিস্মিত', prompt: 'Speak in a highly surprised, gasping cartoon character voice' },
-  { id: 'shy', name: 'লাজুক', icon: '😳', color: 'rose', desc: 'লজ্জা পাওয়া', prompt: 'Speak in a shy, timid, hesitant cartoon character voice' },
-  { id: 'tired', name: 'ক্লান্ত', icon: '😫', color: 'stone', desc: 'হাঁপানো', prompt: 'Speak in an exhausted, tired cartoon character voice, panting slightly' },
-  { id: 'sleepy', name: 'ঘুমন্ত', icon: '😴', color: 'slate', desc: 'হাই তোলা', prompt: 'Speak in a sleepy, yawning, and drowsy cartoon character voice' },
-  { id: 'confident', name: 'আত্মবিশ্বাসী', icon: '😏', color: 'sky', desc: 'দৃঢ়', prompt: 'Speak in a very confident, self-assured cartoon character voice' },
-  { id: 'confused', name: 'দ্বিধাগ্রস্ত', icon: '😵', color: 'amber', desc: 'এলোমেলো ভাব', prompt: 'Speak in a confused, unsure, dazed cartoon character voice' },
-  { id: 'rushed', name: 'তাড়াহুড়ো', icon: '🏃', color: 'blue', desc: 'দ্রুত কথা', prompt: 'Speak in a very fast, panicked, rushed cartoon character voice' },
-  { id: 'cautious', name: 'সতর্ক', icon: '🤫', color: 'teal', desc: 'সাবধানী', prompt: 'Speak in a cautious, whispering, careful cartoon character voice' },
-  { id: 'sarcastic', name: 'ব্যঙ্গাত্মক', icon: '🙄', color: 'lime', desc: 'বাঁকা কথা', prompt: 'Speak in a mocking, sarcastic, rolling-eyes cartoon character voice' },
-  { id: 'worried', name: 'চিন্তিত', icon: '😟', color: 'cyan', desc: 'উদ্বিগ্ন', prompt: 'Speak in an anxious, worried, fretful cartoon character voice' },
-  { id: 'pain', name: 'ব্যথাতুর', icon: '🤕', color: 'red', desc: 'আহ উহ করা', prompt: 'Speak in a cartoon character voice that is in physical pain, saying ouch or groaning' },
-  { id: 'pouting', name: 'অভিমানী', icon: '😠', color: 'pink', desc: 'গাল ফোলানো', prompt: 'Speak in a childishly pouting, stubbornly upset cartoon character voice' },
-  { id: 'frustrated', name: 'হতাশ', icon: '😤', color: 'orange', desc: 'দীর্ঘশ্বাস', prompt: 'Speak in a highly frustrated, groaning cartoon character voice' },
-  { id: 'stubborn', name: 'জেদি', icon: '😠', color: 'rose', desc: 'একগুঁয়ে', prompt: 'Speak in a grumpy, rebellious, and stubborn cartoon character voice' },
-  { id: 'romantic', name: 'প্রেমময়', icon: '😍', color: 'purple', desc: 'আদুরে', prompt: 'Speak in a dreamy, romantic, lovestruck cartoon character voice' },
-  { id: 'jealous', name: 'ঈর্ষান্বিত', icon: '😒', color: 'emerald', desc: 'হিংসুটে', prompt: 'Speak in a jealous, envious, bitter cartoon character voice' },
-  { id: 'curious', name: 'কৌতূহলী', icon: '🤔', color: 'blue', desc: 'প্রশ্ন করার সুর', prompt: 'Speak in a highly curious, inquisitive cartoon character voice' },
-  { id: 'sly', name: 'চতুর', icon: '🦊', color: 'amber', desc: 'ধূর্ত ফাঁদ', prompt: 'Speak in a sly, crafty, cunning cartoon character voice' },
-  { id: 'derpy', name: 'বোকাটে', icon: '🥴', color: 'lime', desc: 'গর্দভ', prompt: 'Speak in an incredibly dumb, dull-witted, derpy cartoon character voice' },
-  { id: 'shouting', name: 'চিৎকার', icon: '📢', color: 'red', desc: 'অনেক জোরে', prompt: 'Speak by loudly shouting and screaming in a cartoon character voice' },
-  { id: 'whisper', name: 'ফিসফিস', icon: '🤫', color: 'slate', desc: 'খুব আস্তে', prompt: 'Speak in a completely quiet, secretive whisper in a cartoon character voice' },
-  { id: 'robotic', name: 'রোবোটিক', icon: '🤖', color: 'zinc', desc: 'যান্ত্রিক', prompt: 'Speak like a glitching, monotone cartoon robot' },
-  { id: 'magical', name: 'জাদুকরী', icon: '✨', color: 'indigo', desc: 'মায়াবী', prompt: 'Speak in an ethereal, magical, mystical cartoon character voice' },
-  { id: 'monster', name: 'রাক্ষস', icon: '👹', color: 'red', desc: 'ভয়ানক শব্দ', prompt: 'Speak like a big, scary, grunting cartoon monster' },
-  { id: 'stammering', name: 'তোতলা', icon: '😰', color: 'yellow', desc: 'আটকে যাওয়া', prompt: 'Speak in a nervous, stammering, stuttering cartoon character voice' },
-  { id: 'sick', name: 'অসুস্থ', icon: '🤧', color: 'emerald', desc: 'হাঁচি কাশি', prompt: 'Speak in a sick cartoon character voice, sneezing and coughing' },
-  { id: 'cold', name: 'শীত পাওয়া', icon: '🥶', color: 'cyan', desc: 'দাঁতে দাঁত লাগা', prompt: 'Speak in a freezing, shivering, teeth-chattering cartoon character voice' },
-  { id: 'crazy', name: 'পাগল', icon: '🤪', color: 'rose', desc: 'উন্মাদ', prompt: 'Speak in an insane, unhinged, crazy, laughing cartoon character voice' },
-  { id: 'posh', name: 'রাজকীয়', icon: '👑', color: 'yellow', desc: 'বড়লোকী স্টাইল', prompt: 'Speak in a snobby, posh, aristocratic, upper-class cartoon character voice' },
-  { id: 'solemn', name: 'গুরুগম্ভীর', icon: '🗿', color: 'stone', desc: 'উপদেশ দেয়া', prompt: 'Speak in a very serious, deeply solemn, wise old cartoon character voice' },
-  { id: 'whiny', name: 'ঘ্যানঘ্যান', icon: '😫', color: 'pink', desc: 'কান্না করা', prompt: 'Speak in an extremely whiny, annoying, complaining cartoon character voice' },
-  { id: 'zombie', name: 'জম্বি', icon: '🧟', color: 'emerald', desc: 'গোঙানি', prompt: 'Speak like a braindead, groaning, moaning cartoon zombie' },
-  { id: 'spooky', name: 'ভুতুড়ে', icon: '👻', color: 'slate', desc: 'ভীতিকর', prompt: 'Speak in a spooky, ghostly, haunting cartoon character voice' },
-  { id: 'alien', name: 'এলিয়েন', icon: '👽', color: 'lime', desc: 'ভিনগ্রহের', prompt: 'Speak in a weird, bizarre, extra-terrestrial alien cartoon character voice' },
-  { id: 'animal', name: 'পশুপাখির মতো', icon: '🐶', color: 'amber', desc: 'নকল করা', prompt: 'Speak with animal-like grunts, squeaks, and noises in a cartoon character voice' },
-  { id: 'overdramatic', name: 'অতি নাটকীয়', icon: '🎭', color: 'purple', desc: 'অভিনয়', prompt: 'Speak in an overly dramatic, theatrical, Shakespearean cartoon character voice' },
-  { id: 'bored', name: 'উদাসীন', icon: '🥱', color: 'slate', desc: 'বিরক্তি নিয়ে', prompt: 'Speak in an extremely bored, apathetic, monotone cartoon character voice' },
-  { id: 'epic', name: 'এপিক', icon: '⚔️', color: 'orange', desc: 'যোদ্ধার গলার স্বর', prompt: 'Speak in an epic, legendary, battle-ready cartoon character voice' }
+  { id: 'neutral', name: 'স্বাভাবিক', icon: '😐', color: 'slate', desc: 'সাধারণ', prompt: 'Speak naturally' },
+  { id: 'happy', name: 'খুশি', icon: '😊', color: 'yellow', desc: 'প্রাণবন্ত', prompt: 'Speak cheerfully' },
+  { id: 'sad', name: 'দুঃখিত', icon: '😢', color: 'blue', desc: 'ধীর', prompt: 'Speak sadly' },
+  { id: 'angry', name: 'রাগী', icon: '😠', color: 'red', desc: 'তীব্র', prompt: 'Speak angrily' },
+  { id: 'excited', name: 'উত্তেজিত', icon: '🤩', color: 'pink', desc: 'শক্তিপূর্ণ', prompt: 'Speak excitedly' },
+  { id: 'calm', name: 'শান্ত', icon: '😌', color: 'emerald', desc: 'স্নিগ্ধ', prompt: 'Speak calmly' },
+  { id: 'fearful', name: 'ভীত', icon: '😨', color: 'purple', desc: 'উদ্বিগ্ন', prompt: 'Speak fearfully' },
+  { id: 'surprised', name: 'অবাক', icon: '😲', color: 'orange', desc: 'আশ্চর্য', prompt: 'Speak with surprise' },
+  { id: 'whisper', name: 'ফিসফিস', icon: '🤫', color: 'cyan', desc: 'নীরব', prompt: 'Speak in a whisper' },
+  { id: 'shout', name: 'চিৎকার', icon: '📢', color: 'rose', desc: 'উচ্চস্বর', prompt: 'Speak loudly and shouting' },
+  { id: 'cry', name: 'কান্না', icon: '😭', color: 'indigo', desc: 'ডুকরে', prompt: 'Speak as if crying' },
+  { id: 'laugh', name: 'হাসি', icon: '😂', color: 'amber', desc: 'খিলখিল', prompt: 'Speak with laughter' },
+  { id: 'romantic', name: 'রোমান্টিক', icon: '❤️', color: 'red', desc: 'স্নেহপূর্ণ', prompt: 'Speak romantically' },
+  { id: 'mysterious', name: 'রহস্যময়', icon: '🕵️', color: 'violet', desc: 'গোপনীয়', prompt: 'Speak mysteriously' },
+  { id: 'sarcastic', name: 'ব্যঙ্গাত্মক', icon: '🙄', color: 'lime', desc: 'বিদ্রূপ', prompt: 'Speak sarcastically' },
+  { id: 'serious', name: 'গুরুগম্ভীর', icon: '🧐', color: 'zinc', desc: 'আনুষ্ঠানিক', prompt: 'Speak seriously' },
+  { id: 'friendly', name: 'বন্ধুত্বপূর্ণ', icon: '👋', color: 'teal', desc: 'উষ্ণ', prompt: 'Speak friendly' },
+  { id: 'professional', name: 'পেশাদার', icon: '💼', color: 'blue', desc: 'কর্মস্থান', prompt: 'Speak professionally' },
+  { id: 'dramatic', name: 'নাটকীয়', icon: '🎭', color: 'fuchsia', desc: 'অভিনয়', prompt: 'Speak dramatically' },
+  { id: 'tired', name: 'ক্লান্ত', icon: '😴', color: 'stone', desc: 'ঘুমন্ত', prompt: 'Speak tiredly' },
+  { id: 'energetic', name: 'চনমনে', icon: '⚡', color: 'yellow', desc: 'দ্রুত', prompt: 'Speak energetically' },
+  { id: 'confident', name: 'আত্মবিশ্বাসী', icon: '😎', color: 'sky', desc: 'দৃঢ়', prompt: 'Speak confidently' },
+  { id: 'shy', name: 'লাজুক', icon: '🥺', color: 'rose', desc: 'নীরব', prompt: 'Speak shyly' },
+  { id: 'hopeful', name: 'আশাবাদী', icon: '✨', color: 'amber', desc: 'ইতিবাচক', prompt: 'Speak hopefully' },
+  { id: 'bored', name: 'বিরক্ত', icon: '😑', color: 'neutral', desc: 'একঘেয়ে', prompt: 'Speak boredly' },
+  { id: 'anxious', name: 'উদ্বিগ্ন', icon: '😰', color: 'orange', desc: 'নার্ভাস', prompt: 'Speak anxiously' },
+  { id: 'proud', name: 'গর্বিত', icon: '🦁', color: 'gold', desc: 'মহান', prompt: 'Speak proudly' },
+  { id: 'guilty', name: 'অপরাধী', icon: '😔', color: 'slate', desc: 'অনুশোচনা', prompt: 'Speak guiltily' },
+  { id: 'jealous', name: 'ঈর্ষাকাতর', icon: '😒', color: 'green', desc: 'হিংসুটে', prompt: 'Speak jealously' },
+  { id: 'lonely', name: 'একা', icon: '🏚️', color: 'blue', desc: 'বিচ্ছিন্ন', prompt: 'Speak lonely' },
+  { id: 'grateful', name: 'কৃতজ্ঞ', icon: '🙏', color: 'emerald', desc: 'ধন্যবাদ', prompt: 'Speak gratefully' },
+  { id: 'curious', name: 'কৌতূহলী', icon: '🤔', color: 'cyan', desc: 'অনুসন্ধিৎসু', prompt: 'Speak curiously' },
+  { id: 'determined', name: 'দৃঢ়সংকল্প', icon: '😤', color: 'red', desc: 'শক্তিশালী', prompt: 'Speak determinedly' },
+  { id: 'relaxed', name: 'আরামদায়ক', icon: '🏖️', color: 'teal', desc: 'ঠান্ডা', prompt: 'Speak relaxed' },
+  { id: 'worried', name: 'চিন্তিত', icon: '😟', color: 'yellow', desc: 'অস্থির', prompt: 'Speak worriedly' },
+  { id: 'disappointed', name: 'হতাশ', icon: '😞', color: 'slate', desc: 'দুঃখ', prompt: 'Speak disappointedly' },
+  { id: 'inspired', name: 'অনুপ্রাণিত', icon: '💡', color: 'amber', desc: 'সৃজনশীল', prompt: 'Speak inspired' },
+  { id: 'silly', name: 'বোকা', icon: '🤪', color: 'pink', desc: 'মজার', prompt: 'Speak sillily' },
+  { id: 'grumpy', name: 'বদমেজাজি', icon: '😡', color: 'orange', desc: 'রাগী', prompt: 'Speak grumpily' },
+  { id: 'peaceful', name: 'শান্তিপূর্ণ', icon: '🕊️', color: 'white', desc: 'প্রশান্ত', prompt: 'Speak peacefully' },
+  { id: 'nostalgic', name: 'স্মৃতিকাতর', icon: '📻', color: 'stone', desc: 'অতীত', prompt: 'Speak nostalgically' },
+  { id: 'brave', name: 'সাহসী', icon: '🛡️', color: 'red', desc: 'নির্ভয়', prompt: 'Speak bravely' },
+  { id: 'kind', name: 'দয়ালু', icon: '🤝', color: 'emerald', desc: 'ভদ্র', prompt: 'Speak kindly' },
+  { id: 'stern', name: 'ক কঠোর', icon: '🤨', color: 'zinc', desc: 'কড়া', prompt: 'Speak sternly' },
+  { id: 'playful', name: 'খেলোয়াড়', icon: '🎈', color: 'pink', desc: 'মজা', prompt: 'Speak playfully' },
+  { id: 'elegant', name: 'মার্জিত', icon: '💎', color: 'indigo', desc: 'শৌখিন', prompt: 'Speak elegantly' },
+  { id: 'robotic', name: 'রোবটিক', icon: '🤖', color: 'slate', desc: 'ফ্ল্যাট', prompt: 'Speak robotically' },
+  { id: 'ghostly', name: 'ভৌতিক', icon: '👻', color: 'white', desc: 'ভয়ানক', prompt: 'Speak ghostly' },
+  { id: 'heroic', name: 'বীরত্বপূর্ণ', icon: '🦸', color: 'blue', desc: 'মহাকাব্যিক', prompt: 'Speak heroically' },
+  { id: 'villainous', name: 'খলনায়ক', icon: '😈', color: 'purple', desc: 'অন্ধকার', prompt: 'Speak villainously' },
+  { id: 'cartoon_happy', name: 'কার্টুন খুশি', icon: '🐣', color: 'yellow', desc: 'অ্যানিমে', prompt: 'Speak with an exaggerated, high-pitched, bubbly cartoon character voice. Be very expressive.' },
+  { id: 'cartoon_angry', name: 'কার্টুন রাগী', icon: '👹', color: 'red', desc: 'নাটকীয়', prompt: 'Speak like a funny cartoon villain who is very angry. Use exaggerated emphasis on words.' },
+  { id: 'cartoon_scared', name: 'কার্টুন ভীত', icon: '👻', color: 'purple', desc: 'মজার', prompt: 'Speak like a cartoon character who is completely panicking and trembling. High energy and jittery.' },
+  { id: 'cartoon_crying', name: 'কার্টুন কান্না', icon: '😭', color: 'blue', desc: 'দুঃখিত', prompt: 'Speak like a cartoon character crying uncontrollably with dramatic sobs and wails.' },
+  { id: 'cartoon_evil_plan', name: 'শয়তানি বুদ্ধি', icon: '😈', color: 'indigo', desc: 'গোপন', prompt: 'Speak like a cartoon villain explaining their brilliant, evil master plan in a low, sneaky voice.' },
+  { id: 'cartoon_hyper', name: 'অতিচঞ্চল', icon: '⚡', color: 'yellow', desc: 'দ্রুত', prompt: 'Speak like an extremely hyperactive cartoon character. Talk very fast with boundless energy.' },
+  { id: 'cartoon_sleepy', name: 'ঘুমকাতুরে', icon: '😴', color: 'slate', desc: 'ক্লান্ত', prompt: 'Speak like a cartoon character struggling to stay awake, yawning frequently.' },
+  { id: 'cartoon_confused', name: 'বিভ্রান্ত', icon: '😵‍💫', color: 'fuchsia', desc: 'মাথাব্যথা', prompt: 'Speak like a cartoon character who just got hit on the head and is completely confused and dizzy.' },
+  { id: 'monster', name: 'দানব', icon: '👹', color: 'red', desc: 'পশু', prompt: 'Speak with a deep, growling, monstrous voice. Very low pitch and terrifying.' },
+  { id: 'child', name: 'শিশু', icon: '👶', color: 'sky', desc: 'কিউট', prompt: 'Speak with a high-pitched, innocent, and sweet child voice. Pure and soft.' },
+  { id: 'alien', name: 'এলিয়েন', icon: '👽', color: 'lime', desc: 'অদ্ভুত', prompt: 'Speak with a strange, warbling, extraterrestrial voice. Use unusual inflections.' },
+  { id: 'cartoon_silly', name: 'হাস্যকর', icon: '🤡', color: 'orange', desc: 'পাগলাটে', prompt: 'Speak like a goofy, silly cartoon sidekick. Use funny inflections and high energy. Be extremely entertaining.' },
+  { id: 'witch', name: 'ডাইনি', icon: '🧙‍♀️', color: 'indigo', desc: 'ভাঙ্গা কণ্ঠ', prompt: 'Speak like a mysterious old witch or an eccentric older character. Use a crackly, aged, and slightly rasping voice.' },
+  { id: 'giant', name: 'দৈত্য', icon: '🧱', color: 'stone', desc: 'গভীর', prompt: 'Speak like a slow-witted, large, and friendly giant. Use a very deep, slow, and resonant voice.' },
+  { id: 'scientist', name: 'পাগল বিজ্ঞানী', icon: '🧪', color: 'emerald', desc: 'চঞ্চল', prompt: 'Speak like an eccentric, high-strung mad scientist. Use erratic pacing and sudden bursts of energy.' },
+  { id: 'crying', name: 'কান্না', icon: '😭', color: 'blue', desc: 'আবেগপূর্ণ', prompt: 'Speak while sobbing and being completely heartbroken. The voice should tremble and break with sadness.' },
+  { id: 'sneaky', name: 'গোপন', icon: '👣', color: 'slate', desc: 'সন্দেহজনক', prompt: 'Speak in a low, conspiratorial whisper. Like you are a spy or a thief hiding in the shadows.' },
+  { id: 'sassy', name: 'অহংকারী', icon: '💅', color: 'pink', desc: 'আত্মবিশ্বাসী', prompt: 'Speak with a sharp, witty, and confident sassy attitude. Use lots of personality and emphasis.' },
+  { id: 'cartoon_hero', name: 'হিরো', icon: '🦸‍♂️', color: 'blue', desc: 'সাহসী', prompt: 'Speak like a classic, noble cartoon superhero. Deep, confident, and inspiring voice.' },
+  { id: 'cartoon_villain_laugh', name: 'শয়তানের হাসি', icon: '🦹', color: 'purple', desc: 'উন্মাদ', prompt: 'Speak like a villain having a maniacal laughing fit. Very expressive and slightly unhinged.' },
+  { id: 'cartoon_ninja', name: 'নিনজা', icon: '🥷', color: 'slate', desc: 'তড়িৎ', prompt: 'Speak in a fast, focused, and disciplined ninja voice. Sharp and precise delivery.' },
+  { id: 'cartoon_pirate', name: 'জলদস্যু', icon: '🏴‍☠️', color: 'orange', desc: 'কর্কশ', prompt: 'Speak like a classic cartoon pirate. Gruff, hearty, and full of seafaring slang.' },
+  { id: 'cartoon_fairy', name: 'ছোট পরি', icon: '🧚', color: 'pink', desc: 'হালকা', prompt: 'Speak with a very high-pitched, delicate, and tinkling fairy voice. Soft and magical.' },
+  { id: 'cartoon_dragon', name: 'ড্রাগন', icon: '🐲', color: 'red', desc: 'শক্তিশালী', prompt: 'Speak with a deep, rumbling, and powerful dragon voice. Slightly smoky and intimidating.' },
+  { id: 'cartoon_robot_glitch', name: 'নষ্ট রোবট', icon: '📟', color: 'cyan', desc: 'ভাঙ্গা', prompt: 'Speak like a robot that is malfunctioning or glitching. Use stuttered delivery and variable pitch.' },
+  { id: 'cartoon_detective', name: 'Noir Sleuth', icon: '🕵️‍♂️', color: 'zinc', desc: 'Cool', prompt: 'Speak in a gravelly, cool, and mysterious noir detective voice. Very rhythmic and moody.' },
+  { id: 'cartoon_explorer', name: 'Brave Scout', icon: '🏕️', color: 'emerald', desc: 'Eager', prompt: 'Speak with an enthusiastic, high-energy, and adventurous young explorer voice.' },
+  { id: 'cartoon_king', name: 'Pompous King', icon: '👑', color: 'gold', desc: 'Royal', prompt: 'Speak with a very posh, slightly arrogant, and commanding royal voice.' },
+  { id: 'cartoon_jester', name: 'Wild Jester', icon: '🃏', color: 'yellow', desc: 'Funny', prompt: 'Speak with an erratic, high-pitched, and playful jester voice. Lots of giggles and jumps.' },
+  { id: 'cartoon_warrior', name: 'Battle Grunt', icon: '⚔️', color: 'red', desc: 'Strong', prompt: 'Speak like a powerful warrior in the heat of battle. Gravelly, breathless, and intense.' },
+  { id: 'cartoon_space', name: 'Star Captain', icon: '🚀', color: 'indigo', desc: 'Epic', prompt: 'Speak with a dramatic, booming, and authoritative space captain voice. Very theatrical.' },
+  { id: 'cartoon_zombie', name: 'Funny Zombie', icon: '🧟', color: 'green', desc: 'Dazed', prompt: 'Speak like a cartoon zombie that is slow, dazed, and groaning words out.' },
+  { id: 'cartoon_ghost_friendly', name: 'Pudge Ghost', icon: '👻', color: 'sky', desc: 'Sweet', prompt: 'Speak with a soft, breathy, and friendly ghost voice. Very cute and gentle.' },
+  { id: 'cartoon_cowboy', name: 'Lone Rider', icon: '🤠', color: 'amber', desc: 'Drawl', prompt: 'Speak with a slow, Southern cowboy drawl. Cool, calm, and collected.' },
+  { id: 'cartoon_mermaid', name: 'Sea Singer', icon: '🧜‍♀️', color: 'blue', desc: 'Dreamy', prompt: 'Speak with a dreamy, melodic, and slightly echoing underwater voice.' },
+  { id: 'cartoon_dwarf', name: 'Grumpy Miner', icon: '⚒️', color: 'stone', desc: 'Gravel', prompt: 'Speak with a deep, gravelly, and grumpy dwarf-like voice. Strong accent.' },
+  { id: 'cartoon_elf', name: 'Swift Elf', icon: '🧝', color: 'forest', desc: 'Elegant', prompt: 'Speak with a light, graceful, and highly articulate elven voice.' },
+  { id: 'cartoon_alien_cute', name: 'Bip-Bop', icon: '👾', color: 'lime', desc: 'Small', prompt: 'Speak with a very high-pitched, chirpy, and adorable small alien voice.' },
+  { id: 'laugh_hysterical', name: 'অট্টহাসি', icon: '🤣', color: 'orange', desc: 'অনিয়ন্ত্রিত', prompt: 'Speak while laughing hysterically and uncontrollably. High energy and explosive.' },
+  { id: 'panic', name: 'আতঙ্কিত', icon: '😱', color: 'red', desc: 'ভয়াচ্ছন্ন', prompt: 'Speak with extreme panic and desperation. Short breaths and high-pitched anxiety.' },
+  { id: 'relieved', name: 'স্বস্তিদায়ক', icon: '😌', color: 'emerald', desc: 'আরাম', prompt: 'Speak with a heavy sigh of relief. Calm and peaceful delivery.' },
+  { id: 'disgusted', name: 'ঘৃণিত', icon: '🤢', color: 'green', desc: 'বিরক্তি', prompt: 'Speak with visible disgust and revulsion in the voice.' },
+  { id: 'arrogant', name: 'অহংকারী', icon: '🤨', color: 'purple', desc: 'দাম্ভিক', prompt: 'Speak with a condescending, arrogant, and superior tone.' },
+  { id: 'humble', name: 'বিনয়ী', icon: '🙇', color: 'blue', desc: 'নম্র', prompt: 'Speak with a very humble, soft-spoken, and respectful tone.' },
+  { id: 'sleepwalking', name: 'ঘুমন্ত হাঁটা', icon: '😴', color: 'indigo', desc: 'ঘোর', prompt: 'Speak in a dazed, monotone, and dreamy sleepwalking voice.' },
+  { id: 'drunk', name: 'মাতাল', icon: '🥴', color: 'amber', desc: 'অসংলগ্ন', prompt: 'Speak with slurred words and unstable pitch, like someone who is intoxicated.' },
+  { id: 'shivering', name: 'কাঁপুনি', icon: '🥶', color: 'cyan', desc: 'ঠান্ডা', prompt: 'Speak as if shivering violently from extreme cold. Voice should tremble.' },
+  { id: 'hot', name: 'উত্তপ্ত', icon: '🥵', color: 'rose', desc: 'হাঁপানো', prompt: 'Speak as if suffering from extreme heat, panting and breathing heavily.' },
+  { id: 'singing', name: 'গান গাওয়া', icon: '🎤', color: 'pink', desc: 'সুর', prompt: 'Speak in a sing-song, melodic, and rhythmic manner.' },
+  { id: 'news_anchor', name: 'সংবাদ পাঠক', icon: '📺', color: 'blue', desc: ' স্পষ্ট', prompt: 'Speak with the professional, clear, and projected voice of a news anchor.' },
+  { id: 'radio_dj', name: 'রেডিও জকি', icon: '📻', color: 'orange', desc: 'চটপটে', prompt: 'Speak like a high-energy, smooth-talking FM radio DJ.' },
+  { id: 'auctioneer', name: 'নিলামকারী', icon: '🔨', color: 'stone', desc: 'দ্রুততম', prompt: 'Speak extremely fast and rhythmically, like a professional auctioneer.' },
+  { id: 'sports_commentator', name: 'ধারাভাষ্যকার', icon: '⚽', color: 'emerald', desc: 'উত্তেজনা', prompt: 'Speak with the high energy and rapid-fire delivery of a sports commentator.' },
+  { id: 'yoga_instructor', name: 'যোগ শিক্ষক', icon: '🧘', color: 'teal', desc: 'শান্ত', prompt: 'Speak in an extremely calm, slow, and soothing yoga instructor voice.' },
+  { id: 'drill_sergeant', name: 'সেনা প্রশিক্ষক', icon: '🪖', color: 'red', desc: 'কঠোর', prompt: 'Speak with the booming, aggressive, and commanding voice of a drill sergeant.' },
+  { id: 'library_whisper', name: 'লাইব্রেরি', icon: '📚', color: 'slate', desc: 'নীরব', prompt: 'Speak in a very quiet, suppressed library whisper.' },
+  { id: 'secret_agent', name: 'গোয়েন্দা', icon: '📡', color: 'black', desc: 'গোপন', prompt: 'Speak as if talking into a covert radio earpiece. Low and focused.' },
+  { id: 'dying', name: 'মরণাপন্ন', icon: '💀', color: 'zinc', desc: 'শেষ নিশ্বাস', prompt: 'Speak with a weak, fading, and raspy voice, as if taking a literal last breath.' },
+  { id: 'awakening', name: 'জাগ্রত', icon: '🌅', color: 'sky', desc: 'ঘুম থেকে', prompt: 'Speak with the groggy, confused, and slow voice of someone just waking up.' },
+  { id: 'falling', name: 'পতন', icon: '🪂', color: 'blue', desc: 'উঁচু থেকে', prompt: 'Speak as if falling from a great height, with a Doppler-effect scream or panic.' },
+  { id: 'heavy_lifting', name: 'ভারী কাজ', icon: '🏋️', color: 'orange', desc: 'কষ্টকর', prompt: 'Speak as if straining to lift something very heavy. Grunts and effort.' },
+  { id: 'running', name: 'দৌড়ানো', icon: '🏃', color: 'emerald', desc: 'হাঁপানো', prompt: 'Speak while running, sounding out of breath and physically exerted.' },
+  { id: 'underwater', name: 'পানির নিচে', icon: '🌊', color: 'blue', desc: 'অস্পষ্ট', prompt: 'Speak as if underwater, muffled and gurgling.' },
+  { id: 'megaphone', name: 'মেগাফোন', icon: '📣', color: 'red', desc: 'উচ্চবার্তা', prompt: 'Speak as if through a high-pitched, distorted electronic megaphone.' },
+  { id: 'telephone', name: 'টেলিফোন', icon: '📞', color: 'zinc', desc: 'পুরনো', prompt: 'Speak as if through a low-bandwidth, tinny old telephone line.' },
+  { id: 'gramophone', name: 'গ্রামোফোন', icon: '📀', color: 'amber', desc: 'পুরানো', prompt: 'Speak with the scratchy, crackling quality of a 1920s gramophone record.' },
+  { id: 'space_suit', name: 'মহাকাশচারী', icon: '👩‍🚀', color: 'sky', desc: 'রেডিও', prompt: 'Speak as if through a space suit communicator with static and heavy breathing.' },
+  { id: 'time_traveler', name: 'সময় ভ্রমণকারী', icon: '⏳', color: 'violet', desc: 'বিস্ময়', prompt: 'Speak with a sense of wonder and temporal distortion, as if crossing eras.' },
+  { id: 'viking', name: 'ভাইকিং', icon: '🪓', color: 'stone', desc: 'যোদ্ধা', prompt: 'Speak with a loud, boisterous, and intimidating Viking warrior voice.' },
+  { id: 'senator', name: 'সিনেটর', icon: '🏛️', color: 'white', desc: 'বক্তা', prompt: 'Speak with the formal, resonant, and persuasive voice of a Roman senator.' },
+  { id: 'victorian_lady', name: 'ভিক্টোরিয়ান', icon: '👒', color: 'pink', desc: 'মার্জিত', prompt: 'Speak with the extremely posh, proper, and articulate voice of a Victorian lady.' },
+  { id: 'gangster_1920', name: 'গ্যাংস্টার', icon: '🚬', color: 'zinc', desc: 'মফিয়া', prompt: 'Speak with the tough, gravelly, 1920s New York gangster "wiseguy" accent.' },
+  { id: 'samurai', name: 'সামুরাই', icon: '⚔️', color: 'red', desc: 'গম্ভীর', prompt: 'Speak with the disciplined, deep, and focused voice of a legendary samurai.' },
+  { id: 'kung_fu_master', name: 'কুংফু মাস্টার', icon: '🥋', color: 'orange', desc: 'জ্ঞানী', prompt: 'Speak like an old, wise, and calm martial arts master.' },
+  { id: 'chef', name: 'শেফ', icon: '👨‍🍳', color: 'white', desc: 'রান্না', prompt: 'Speak with the passionate and loud energy of a professional chef in a kitchen.' },
+  { id: 'doctor_urgent', name: 'চিকিৎসক', icon: '🏥', color: 'blue', desc: 'জরুরী', prompt: 'Speak with the calm but urgent authority of a doctor in an ER.' },
+  { id: 'teacher_strict', name: 'কড়া শিক্ষক', icon: '📏', color: 'stone', desc: 'শাসন', prompt: 'Speak with the stern, authoritative, and disciplinary voice of a strict teacher.' },
+  { id: 'santa_claus', name: 'সান্টা ক্লজ', icon: '🎅', color: 'red', desc: 'হাসি', prompt: 'Speak in a jolly, deep, and hearty Santa Claus voice. Ho ho ho!' },
+  { id: 'evil_clown', name: 'শয়তান ভাঁড়', icon: '🤡', color: 'purple', desc: 'ভয়াবহ', prompt: 'Speak with a high-pitched, menacing, and creepy evil clown voice.' },
+  { id: 'werewolf', name: 'নেকড়ে মানব', icon: '🐺', color: 'stone', desc: 'গর্জন', prompt: 'Speak with a feral, growling voice that transitions into wolf-like sounds.' },
+  { id: 'vampire', name: 'ভ্যাম্পায়ার', icon: '🧛', color: 'purple', desc: 'আভিজাত্য', prompt: 'Speak with a sophisticated, mysterious, and Hungarian-accented vampire voice.' },
+  { id: 'siren', name: 'সাইরেন', icon: '🧜‍♀️', color: 'cyan', desc: 'যাদুকরী', prompt: 'Speak with a captivating, ethereal, and dangerously beautiful siren song quality.' },
+  { id: 'phoenix', name: 'ফিনিক্স', icon: '🔥', color: 'orange', desc: 'মহীয়ান', prompt: 'Speak with a voice that sounds literal like fire and rising majesty.' },
+  { id: 'ent_tree', name: 'বৃক্ষ মানব', icon: '🌳', color: 'forest', desc: 'অতি ধীর', prompt: 'Speak with an extremely slow, deep, and creaky wooden voice like an Ent.' },
+  { id: 'pixie', name: 'পরী', icon: '🧚', color: 'pink', desc: 'চঞ্চল', prompt: 'Speak with a tiny, high-pitched, and giggly pixie voice.' },
+  { id: 'troll', name: 'ট্রল', icon: '👹', color: 'stone', desc: 'ভীষণ', prompt: 'Speak with a slow, dumb, and gravelly giant troll voice.' },
+  { id: 'golem', name: 'পাথর মানব', icon: '🗿', color: 'zinc', desc: 'কর্কশ', prompt: 'Speak with a voice that sounds like grinding stones. Heavy and resonant.' },
+  { id: 'cyberpunk', name: 'সাইবারপাঙ্ক', icon: '🕶️', color: 'fuchsia', desc: 'ভবিষ্যৎ', prompt: 'Speak with a cool, detached, and augmented cyberpunk mercenary voice.' },
+  { id: 'gaggya', name: 'গ্যাগ্যা', icon: '😵', color: 'orange', desc: 'অস্পষ্ট', prompt: 'Speak with a funny, distorted, and slightly choked "gaggya" voice effect. Stutter slightly and vary pitch wildly as if the voice is breaking.' }
 ];
 
 interface HistoryItem {
@@ -266,32 +355,9 @@ function createWavBlob(pcmData: Uint8Array, sampleRate: number, channels: number
   writeString(view, 36, 'data');
   view.setUint32(40, dataSize, true);
   
-  // Copy and amplify PCM data manually
-  // Gemini TTS tends to be quiet, applying a 3.0x software gain
-  const VOLUME_MULTIPLIER = 3.0;
-  for (let i = 0; i < pcmData.length; i += 2) {
-    const lowByte = pcmData[i];
-    const highByte = pcmData[i + 1];
-    
-    // Convert Little-Endian to 16-bit signed integer
-    let sample = (highByte << 8) | lowByte;
-    if (sample >= 32768) sample -= 65536;
-
-    // Apply digital gain
-    sample = Math.floor(sample * VOLUME_MULTIPLIER);
-
-    // Hard clip to avoid integer overflow static
-    if (sample > 32767) sample = 32767;
-    if (sample < -32768) sample = -32768;
-
-    // Convert back to 16-bit unsigned
-    let unsignedSample = sample;
-    if (unsignedSample < 0) unsignedSample += 65536;
-
-    // Write back into the new ArrayBuffer view directly by bypassing bytes.set
-    view.setUint8(44 + i, unsignedSample & 0xFF);
-    view.setUint8(44 + i + 1, (unsignedSample >> 8) & 0xFF);
-  }
+  // Copy PCM data
+  const bytes = new Uint8Array(buffer, 44);
+  bytes.set(pcmData);
   
   return new Blob([buffer], { type: 'audio/wav' });
 }
@@ -310,7 +376,7 @@ export default function App() {
       if (savedKey) return [savedKey];
     } catch (e) {}
     // Vite env variable check
-    const envKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : '';
+    const envKey = typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_GEMINI_API_KEY : '';
     return envKey ? [envKey] : [''];
   });
   
@@ -332,9 +398,10 @@ export default function App() {
   const [text, setText] = useState<string>('');
   const [selVoice, setSelVoice] = useState<string>(() => localStorage.getItem('genvoice_voice') || 'f_child_1');
   const [selEmotion, setSelEmotion] = useState<string>(() => localStorage.getItem('genvoice_emotion') || 'neutral');
+  const [emotionSearch, setEmotionSearch] = useState<string>('');
   const [speed, setSpeed] = useState<number>(() => {
     const saved = localStorage.getItem('genvoice_speed');
-    return saved ? parseFloat(saved) : 0.9;
+    return saved ? parseFloat(saved) : 0.85;
   });
   const [pitch, setPitch] = useState<number>(() => {
     const saved = localStorage.getItem('genvoice_pitch');
@@ -485,89 +552,140 @@ export default function App() {
     
     // Restore presets
     const presets: Record<string, { s: number, p: number }> = {
-      neutral: { s: 1.0, p: 0 },
-      happy: { s: 1.1, p: 2 },
-      sad: { s: 0.8, p: -3 },
-      angry: { s: 1.2, p: 4 },
-      excited: { s: 1.3, p: 3 },
-      calm: { s: 0.9, p: -2 },
-      fearful: { s: 1.0, p: 1 },
-      surprised: { s: 1.2, p: 5 },
-      whisper: { s: 0.7, p: -2 },
-      shout: { s: 1.4, p: 6 },
-      cry: { s: 0.6, p: -4 },
-      laugh: { s: 1.2, p: 3 },
-      romantic: { s: 0.9, p: -1 },
-      mysterious: { s: 0.8, p: -5 },
-      sarcastic: { s: 1.1, p: 2 },
-      serious: { s: 1.0, p: 0 },
-      friendly: { s: 1.1, p: 1 },
-      professional: { s: 1.0, p: 0 },
-      dramatic: { s: 0.9, p: 4 },
-      tired: { s: 0.7, p: -3 },
-      energetic: { s: 1.3, p: 2 },
-      confident: { s: 1.1, p: 1 },
-      shy: { s: 0.8, p: -1 },
-      hopeful: { s: 1.1, p: 2 },
-      bored: { s: 0.8, p: -2 },
-      anxious: { s: 1.2, p: 3 },
-      proud: { s: 1.1, p: 2 },
-      guilty: { s: 0.8, p: -2 },
-      jealous: { s: 1.1, p: 1 },
-      lonely: { s: 0.7, p: -4 },
-      grateful: { s: 1.0, p: 1 },
-      curious: { s: 1.1, p: 2 },
-      determined: { s: 1.2, p: 1 },
-      relaxed: { s: 0.9, p: -1 },
-      worried: { s: 1.1, p: 2 },
-      disappointed: { s: 0.8, p: -2 },
-      inspired: { s: 1.2, p: 3 },
-      silly: { s: 1.3, p: 4 },
-      grumpy: { s: 1.1, p: 1 },
-      peaceful: { s: 0.8, p: -1 },
-      nostalgic: { s: 0.9, p: -2 },
-      brave: { s: 1.2, p: 2 },
-      kind: { s: 1.0, p: 1 },
-      stern: { s: 1.1, p: 0 },
-      playful: { s: 1.2, p: 3 },
-      elegant: { s: 0.9, p: 1 },
-      robotic: { s: 1.0, p: -10 },
-      ghostly: { s: 0.7, p: -8 },
-      heroic: { s: 1.2, p: 4 },
-      villainous: { s: 0.9, p: -6 },
-      cartoon_happy: { s: 1.2, p: 8 },
-      cartoon_angry: { s: 1.1, p: 5 },
-      cartoon_scared: { s: 1.3, p: 7 },
-      monster: { s: 0.8, p: -15 },
-      child: { s: 1.1, p: 10 },
-      alien: { s: 1.5, p: 5 },
-      cartoon_silly: { s: 1.3, p: 12 },
-      witch: { s: 0.9, p: -5 },
-      giant: { s: 0.7, p: -18 },
-      scientist: { s: 1.4, p: 6 },
-      crying: { s: 0.8, p: 4 },
-      sneaky: { s: 1.0, p: -2 },
-      sassy: { s: 1.1, p: 5 },
-      cartoon_hero: { s: 1.2, p: 4 },
-      cartoon_villain_laugh: { s: 1.4, p: 8 },
-      cartoon_ninja: { s: 1.5, p: 2 },
-      cartoon_pirate: { s: 0.9, p: -8 },
-      cartoon_fairy: { s: 1.4, p: 15 },
-      cartoon_dragon: { s: 0.8, p: -12 },
-      cartoon_robot_glitch: { s: 1.1, p: -5 },
-      cartoon_detective: { s: 0.8, p: -6 },
-      cartoon_explorer: { s: 1.3, p: 6 },
-      cartoon_king: { s: 1.0, p: 2 },
-      cartoon_jester: { s: 1.4, p: 12 },
-      cartoon_warrior: { s: 1.2, p: -4 },
-      cartoon_space: { s: 1.1, p: 5 },
-      cartoon_zombie: { s: 0.6, p: -10 },
-      cartoon_ghost_friendly: { s: 1.1, p: 6 },
-      cartoon_cowboy: { s: 0.8, p: -4 },
-      cartoon_mermaid: { s: 0.9, p: 8 },
-      cartoon_dwarf: { s: 0.9, p: -12 },
-      cartoon_elf: { s: 1.2, p: 10 },
-      cartoon_alien_cute: { s: 1.6, p: 14 }
+      neutral: { s: 0.9, p: 0 },
+      happy: { s: 1.0, p: 2 },
+      sad: { s: 0.75, p: -3 },
+      angry: { s: 1.1, p: 4 },
+      excited: { s: 1.15, p: 3 },
+      calm: { s: 0.85, p: -2 },
+      fearful: { s: 0.95, p: 1 },
+      surprised: { s: 1.1, p: 5 },
+      whisper: { s: 0.65, p: -2 },
+      shout: { s: 1.25, p: 6 },
+      cry: { s: 0.55, p: -4 },
+      laugh: { s: 1.1, p: 3 },
+      romantic: { s: 0.85, p: -1 },
+      mysterious: { s: 0.75, p: -5 },
+      sarcastic: { s: 1.0, p: 2 },
+      serious: { s: 0.9, p: 0 },
+      friendly: { s: 1.0, p: 1 },
+      professional: { s: 0.9, p: 0 },
+      dramatic: { s: 0.85, p: 4 },
+      tired: { s: 0.65, p: -3 },
+      energetic: { s: 1.15, p: 2 },
+      confident: { s: 1.0, p: 1 },
+      shy: { s: 0.75, p: -1 },
+      hopeful: { s: 1.0, p: 2 },
+      bored: { s: 0.75, p: -2 },
+      anxious: { s: 1.1, p: 3 },
+      proud: { s: 1.0, p: 2 },
+      guilty: { s: 0.75, p: -2 },
+      jealous: { s: 1.0, p: 1 },
+      lonely: { s: 0.65, p: -4 },
+      grateful: { s: 0.9, p: 1 },
+      curious: { s: 1.0, p: 2 },
+      determined: { s: 1.1, p: 1 },
+      relaxed: { s: 0.85, p: -1 },
+      worried: { s: 1.0, p: 2 },
+      disappointed: { s: 0.75, p: -2 },
+      inspired: { s: 1.1, p: 3 },
+      silly: { s: 1.2, p: 4 },
+      grumpy: { s: 1.05, p: 1 },
+      peaceful: { s: 0.75, p: -1 },
+      nostalgic: { s: 0.85, p: -2 },
+      brave: { s: 1.1, p: 2 },
+      kind: { s: 0.9, p: 1 },
+      stern: { s: 1.0, p: 0 },
+      playful: { s: 1.1, p: 3 },
+      elegant: { s: 0.85, p: 1 },
+      robotic: { s: 0.9, p: -10 },
+      ghostly: { s: 0.65, p: -8 },
+      heroic: { s: 1.1, p: 4 },
+      villainous: { s: 0.85, p: -6 },
+      cartoon_happy: { s: 1.1, p: 8 },
+      cartoon_angry: { s: 1.0, p: 5 },
+      cartoon_scared: { s: 1.2, p: 7 },
+      monster: { s: 0.75, p: -15 },
+      child: { s: 1.0, p: 10 },
+      alien: { s: 1.2, p: 5 },
+      cartoon_silly: { s: 1.2, p: 10 },
+      witch: { s: 0.85, p: -5 },
+      giant: { s: 0.75, p: -12 },
+      scientist: { s: 1.3, p: 6 },
+      crying: { s: 0.75, p: 4 },
+      sneaky: { s: 0.9, p: -2 },
+      sassy: { s: 1.0, p: 5 },
+      cartoon_hero: { s: 1.1, p: 4 },
+      cartoon_villain_laugh: { s: 1.3, p: 8 },
+      cartoon_ninja: { s: 1.2, p: 2 },
+      cartoon_pirate: { s: 0.85, p: -8 },
+      cartoon_fairy: { s: 1.2, p: 12 },
+      cartoon_dragon: { s: 0.75, p: -10 },
+      cartoon_robot_glitch: { s: 1.0, p: -5 },
+      cartoon_detective: { s: 0.75, p: -6 },
+      cartoon_explorer: { s: 1.2, p: 6 },
+      cartoon_king: { s: 0.95, p: 2 },
+      cartoon_jester: { s: 1.3, p: 10 },
+      cartoon_warrior: { s: 1.1, p: -4 },
+      cartoon_space: { s: 1.0, p: 5 },
+      cartoon_zombie: { s: 0.65, p: -8 },
+      cartoon_ghost_friendly: { s: 1.0, p: 6 },
+      cartoon_cowboy: { s: 0.75, p: -4 },
+      cartoon_mermaid: { s: 0.85, p: 8 },
+      cartoon_dwarf: { s: 0.85, p: -10 },
+      cartoon_elf: { s: 1.1, p: 10 },
+      cartoon_alien_cute: { s: 1.4, p: 12 },
+      laugh_hysterical: { s: 1.4, p: 8 },
+      panic: { s: 1.4, p: 10 },
+      relieved: { s: 0.75, p: -2 },
+      disgusted: { s: 1.0, p: -5 },
+      arrogant: { s: 0.95, p: 3 },
+      humble: { s: 0.75, p: -2 },
+      sleepwalking: { s: 0.65, p: -5 },
+      drunk: { s: 0.75, p: -3 },
+      shivering: { s: 1.1, p: 4 },
+      hot: { s: 0.65, p: -4 },
+      singing: { s: 0.9, p: 2 },
+      news_anchor: { s: 0.95, p: 0 },
+      radio_dj: { s: 1.0, p: 2 },
+      auctioneer: { s: 1.6, p: 4 },
+      sports_commentator: { s: 1.4, p: 3 },
+      yoga_instructor: { s: 0.55, p: -2 },
+      drill_sergeant: { s: 1.2, p: -8 },
+      library_whisper: { s: 0.65, p: -3 },
+      secret_agent: { s: 0.75, p: -2 },
+      dying: { s: 0.55, p: -10 },
+      awakening: { s: 0.65, p: -4 },
+      falling: { s: 1.4, p: 12 },
+      heavy_lifting: { s: 0.75, p: -5 },
+      running: { s: 1.2, p: 2 },
+      underwater: { s: 0.75, p: -12 },
+      megaphone: { s: 1.1, p: 8 },
+      telephone: { s: 0.9, p: 2 },
+      gramophone: { s: 0.85, p: -2 },
+      space_suit: { s: 0.75, p: -4 },
+      time_traveler: { s: 1.0, p: 5 },
+      viking: { s: 1.1, p: -10 },
+      senator: { s: 0.85, p: -4 },
+      victorian_lady: { s: 1.0, p: 8 },
+      gangster_1920: { s: 0.85, p: -10 },
+      samurai: { s: 0.75, p: -8 },
+      kung_fu_master: { s: 0.65, p: -4 },
+      chef: { s: 1.3, p: 2 },
+      doctor_urgent: { s: 1.0, p: 1 },
+      teacher_strict: { s: 0.9, p: -2 },
+      santa_claus: { s: 0.75, p: -10 },
+      evil_clown: { s: 1.3, p: 10 },
+      werewolf: { s: 0.75, p: -12 },
+      vampire: { s: 0.85, p: -6 },
+      siren: { s: 0.85, p: 6 },
+      phoenix: { s: 1.1, p: 5 },
+      ent_tree: { s: 0.55, p: -12 },
+      pixie: { s: 1.4, p: 12 },
+      troll: { s: 0.65, p: -12 },
+      golem: { s: 0.55, p: -15 },
+      cyberpunk: { s: 1.0, p: 3 },
+      gaggya: { s: 1.0, p: 5 }
     };
     const preset = presets[id];
     if (preset) {
@@ -595,7 +713,7 @@ export default function App() {
 
   const getValidKey = () => {
     const validKeys = apiKeys.filter(k => k.trim());
-    const sysKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const sysKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
     
     if (validKeys.length === 0) return sysKey || null;
     
@@ -626,11 +744,10 @@ export default function App() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          metadata: { title: `AiCartoonVoice_${Date.now()}` },
+          metadata: { title: `GenVoice_${Date.now()}` },
           algorithms: {
-            denoise: true,
+            denoise: false,
             normloudness: true,
-            loudnesstarget: -12,
             dynamic_range_compressor: true,
             highpass_filter: false
           },
@@ -738,16 +855,13 @@ export default function App() {
         setGenerationStep(2); // Selecting Voice & Emotion
         
         let emotionInstruction = customEmotion.trim() ? `Speak with a ${customEmotion} tone` : (emotion?.prompt || 'Speak naturally');
-        const qualityInstruction = "CRITICAL AUDIO REQUIREMENT: The output MUST be pristine, broadcast-level studio quality. ZERO background noise, ZERO static, ZERO metallic or robotic artifacts, and absolutely NO audio clipping or distortion. Speak clearly with perfect articulation and professional microphone etiquette.";
+        const qualityInstruction = "CRITICAL AUDIO REQUIREMENT: High-fidelity studio sound. ZERO static. Speak with a natural, human-like cadence and warmth. Avoid over-articulation or robotic precision. Keep a steady, relaxed pace.";
         
-        const selVoiceObj = VOICES.find(v => v.id === selVoice);
-        const characterInfo = selVoiceObj ? `STRICT INSTRUCTION: You are a ${selVoiceObj.cat} voice actor. Your character profile is: ${selVoiceObj.style}. Your behavior, tone, and GENDER MUST strictly match this profile regardless of the text. Do not accidentally switch gender.` : '';
-        
-        let prompt = `${characterInfo} ${emotionInstruction}. ${qualityInstruction}\n\nText: ${text}`;
+        let prompt = `${emotionInstruction}. ${qualityInstruction}\n\nText: ${text}`;
         
         if (isCartoonMode) {
-          const cartoonAdvice = "ACTING DIRECTIVE: You are a professional cartoon voice actor in a premium soundproof studio. Deliver the line with vivid, animated character personality. DO NOT over-modulate, scream, or clip the audio. The voice MUST be ultra-clean, smooth, and instantly ready for a cinematic animation without post-processing.";
-          prompt = `${characterInfo} ${emotionInstruction}. ${cartoonAdvice}. ${qualityInstruction}\n\nText: ${text}`;
+          const cartoonAdvice = "ACTING DIRECTIVE: You are a professional cartoon voice actor. Deliver with vivid personality, but maintain a conversational and relaxed flow. Do not rush.";
+          prompt = `${emotionInstruction}. ${cartoonAdvice}. ${qualityInstruction}\n\nText: ${text}`;
         }
 
         setGenerationStep(3); // Synthesizing Audio
@@ -905,12 +1019,12 @@ export default function App() {
       
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
-          title: 'Ai cartoon voice Audio',
+          title: 'GenVoice Audio',
           text: `Listen to this ${selEmotion} speech by ${VOICES.find(v => v.id === selVoice)?.name || selVoice}`,
           files: [file]
         });
       } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(`Ai cartoon voice: ${selEmotion} speech by ${VOICES.find(v => v.id === selVoice)?.name || selVoice}`);
+        await navigator.clipboard.writeText(`GenVoice: ${selEmotion} speech by ${VOICES.find(v => v.id === selVoice)?.name || selVoice}`);
         showStatus('Info copied to clipboard', 'success');
       } else {
         showStatus('Sharing not supported on this device', 'info');
@@ -977,7 +1091,7 @@ export default function App() {
             <Activity className="text-white w-6 h-6 sm:w-7 sm:h-7" />
           </div>
           <div className="overflow-hidden">
-            <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight truncate">Ai cartoon voice</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold gradient-text tracking-tight truncate">GenVoice</h1>
             <p className="text-[10px] sm:text-sm text-slate-400 font-medium truncate">Cartoon Optimized Voice Engine</p>
           </div>
         </motion.div>
@@ -1106,23 +1220,38 @@ export default function App() {
                 <div className="flex items-center justify-between mb-4">
                   <label className="text-sm font-semibold text-slate-300 flex items-center gap-2">
                     <Smile className="w-4 h-4 text-pink-400" />
-                    ইমোশন নির্বাচন করুন
+                    ইমোশন নির্বাচন করুন ({EMOTIONS.length})
                   </label>
-                  <div className="relative group">
-                    <input 
-                      type="text"
-                      value={customEmotion}
-                      onChange={(e) => setCustomEmotion(e.target.value)}
-                      placeholder="Custom Emotion..."
-                      className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-pink-500/50 transition-all placeholder:text-slate-600 w-32 sm:w-48"
-                    />
-                    <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-slate-800 text-[8px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/5">
-                      যেকোনো ইমোশন লিখুন (যেমন: "হাসি", "কান্না")
+                  <div className="flex gap-2 items-center">
+                    <div className="relative">
+                      <input 
+                        type="text"
+                        value={emotionSearch}
+                        onChange={(e) => setEmotionSearch(e.target.value)}
+                        placeholder="ইমোশন খুঁজুন..."
+                        className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-pink-500/50 transition-all placeholder:text-slate-600 w-24 sm:w-32"
+                      />
+                    </div>
+                    <div className="relative group">
+                      <input 
+                        type="text"
+                        value={customEmotion}
+                        onChange={(e) => setCustomEmotion(e.target.value)}
+                        placeholder="Custom Emotion..."
+                        className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-[10px] focus:outline-none focus:ring-1 focus:ring-pink-500/50 transition-all placeholder:text-slate-600 w-24 sm:w-32"
+                      />
+                      <div className="absolute -top-8 left-1/2 -translate-x-1/2 px-2 py-1 rounded bg-slate-800 text-[8px] text-slate-300 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-white/5">
+                        যেকোনো ইমোশন লিখুন (যেমন: "হাসি", "কান্না")
+                      </div>
                     </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-6 lg:grid-cols-10 gap-1.5 sm:gap-2 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-                  {EMOTIONS.map((e) => (
+                  {EMOTIONS.filter(e => 
+                    e.name.toLowerCase().includes(emotionSearch.toLowerCase()) || 
+                    e.id.toLowerCase().includes(emotionSearch.toLowerCase()) ||
+                    e.prompt.toLowerCase().includes(emotionSearch.toLowerCase())
+                  ).map((e) => (
                     <button
                       key={e.id}
                       onClick={() => { handleEmotionChange(e.id); setCustomEmotion(''); }}
@@ -1376,8 +1505,8 @@ export default function App() {
               {/* Stats */}
               <div className="grid grid-cols-2 gap-4 mt-8">
                 <div className="glass-panel p-4 text-center border-white/5">
-                  <div className="text-2xl font-bold text-cyan-400">{history.length}</div>
-                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Synthesized</div>
+                  <div className="text-2xl font-bold text-pink-400">{EMOTIONS.length}</div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Emotions</div>
                 </div>
                 <div className="glass-panel p-4 text-center border-white/5">
                   <div className="text-2xl font-bold text-indigo-400">{VOICES.length}</div>
@@ -1741,7 +1870,7 @@ export default function App() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-white">ইনস্টলেশন গাইড</h3>
-                  <p className="text-xs text-slate-400">Ai cartoon voice Setup</p>
+                  <p className="text-xs text-slate-400">GenVoice Setup</p>
                 </div>
               </div>
 
