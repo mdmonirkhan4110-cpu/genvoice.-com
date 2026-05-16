@@ -234,7 +234,7 @@ interface HistoryItem {
 
 // --- Helper Functions ---
 
-function createWavBlob(pcmData: Uint8Array, sampleRate: number, channels: number, bitsPerSample: number) {
+function createWavBlob(pcmData: Uint8Array, sampleRate: number, channels: number, bitsPerSample: number, volumeBoost: number = 1.0, clarity: number = 50, warmth: number = 50) {
   const headerSize = 44;
   const dataSize = pcmData.length;
   const buffer = new ArrayBuffer(headerSize + dataSize);
@@ -253,43 +253,74 @@ function createWavBlob(pcmData: Uint8Array, sampleRate: number, channels: number
   
   // fmt sub-chunk
   writeString(view, 12, 'fmt ');
-  view.setUint32(16, 16, true); // Subchunk1Size (16 for PCM)
-  view.setUint16(20, 1, true); // AudioFormat (1 for PCM)
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
   view.setUint16(22, channels, true);
   view.setUint32(24, sampleRate, true);
-  view.setUint32(28, sampleRate * channels * bitsPerSample / 8, true); // ByteRate
-  view.setUint16(32, channels * bitsPerSample / 8, true); // BlockAlign
+  view.setUint32(28, sampleRate * channels * bitsPerSample / 8, true);
+  view.setUint16(32, channels * bitsPerSample / 8, true);
   view.setUint16(34, bitsPerSample, true);
   
   // data sub-chunk
   writeString(view, 36, 'data');
   view.setUint32(40, dataSize, true);
   
-  // Copy and amplify PCM data manually
-  // Gemini TTS tends to be quiet, applying a 3.0x software gain
-  const VOLUME_MULTIPLIER = 3.0;
+  // 1. Process PCM Data
+  const numSamples = pcmData.length / 2;
+  const samples = new Float32Array(numSamples);
+  let sum = 0;
+  
   for (let i = 0; i < pcmData.length; i += 2) {
-    const lowByte = pcmData[i];
-    const highByte = pcmData[i + 1];
-    
-    // Convert Little-Endian to 16-bit signed integer
-    let sample = (highByte << 8) | lowByte;
+    let sample = (pcmData[i + 1] << 8) | pcmData[i];
     if (sample >= 32768) sample -= 65536;
+    const val = sample / 32768.0;
+    samples[i/2] = val;
+    sum += val;
+  }
 
-    // Apply digital gain
-    sample = Math.floor(sample * VOLUME_MULTIPLIER);
+  // 2. DC Offset Removal
+  const dcOffset = sum / numSamples;
+  let maxPeak = 0;
+  for (let i = 0; i < numSamples; i++) {
+    samples[i] -= dcOffset;
+    const abs = Math.abs(samples[i]);
+    if (abs > maxPeak) maxPeak = abs;
+  }
 
-    // Hard clip to avoid integer overflow static
-    if (sample > 32767) sample = 32767;
-    if (sample < -32768) sample = -32768;
+  // 3. Audio Enhancement Parameters
+  const clarityFactor = (clarity - 50) / 100; // -0.5 to 0.5
+  const warmthFactor = (warmth - 50) / 100;   // -0.5 to 0.5
+  
+  // 4. Normalization and Scaling
+  const targetPeak = 0.88; 
+  const normFactor = maxPeak > 0 ? targetPeak / maxPeak : 1.0;
+  const finalGain = normFactor * volumeBoost;
 
-    // Convert back to 16-bit unsigned
-    let unsignedSample = sample;
-    if (unsignedSample < 0) unsignedSample += 65536;
+  let lpPrev = 0;
+  // Subtle Low Pass filtering to reduce digital harshness
+  // Clarity reduces filtering (closer to 1.0), warmth increases it (closer to 0.8)
+  const baseAlpha = 0.92;
+  const filterAlpha = Math.max(0.7, Math.min(0.99, baseAlpha - (warmthFactor * 0.1) + (clarityFactor * 0.05)));
 
-    // Write back into the new ArrayBuffer view directly by bypassing bytes.set
-    view.setUint8(44 + i, unsignedSample & 0xFF);
-    view.setUint8(44 + i + 1, (unsignedSample >> 8) & 0xFF);
+  // 5. Final Pass: Apply Gain + Soft Clip + Filter
+  for (let i = 0; i < numSamples; i++) {
+    let s = samples[i] * finalGain;
+
+    // Performance-optimized Soft-clipping
+    if (s > 1.0) s = 1.0;
+    else if (s < -1.0) s = -1.0;
+    else s = (3/2) * s - (1/2) * s * s * s;
+
+    // Apply Filter
+    s = lpPrev + filterAlpha * (s - lpPrev);
+    lpPrev = s;
+    
+    // Convert back to 16-bit
+    let intSample = Math.floor(s * 32767);
+    let unsignedSample = intSample < 0 ? intSample + 65536 : intSample;
+    
+    view.setUint8(44 + i * 2, unsignedSample & 0xFF);
+    view.setUint8(44 + (i * 2) + 1, (unsignedSample >> 8) & 0xFF);
   }
   
   return new Blob([buffer], { type: 'audio/wav' });
@@ -309,7 +340,7 @@ export default function App() {
       if (savedKey) return [savedKey];
     } catch (e) {}
     // Vite env variable check
-    const envKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : '';
+    const envKey = (import.meta as any).env ? (import.meta as any).env.VITE_GEMINI_API_KEY : '';
     return envKey ? [envKey] : [''];
   });
   
@@ -581,7 +612,7 @@ export default function App() {
 
   const getValidKey = () => {
     const validKeys = apiKeys.filter(k => k.trim());
-    const sysKey = import.meta.env.VITE_GEMINI_API_KEY;
+    const sysKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
     
     if (validKeys.length === 0) return sysKey || null;
     
@@ -723,7 +754,9 @@ export default function App() {
            finalBlob = new Blob([bytes], { type: 'audio/mp3' });
         } else {
            // Fallback to manually prepending WAV headers if it is raw PCM
-           finalBlob = createWavBlob(bytes, 24000, 1, 16);
+           // Gemini 2.x standard is 24000Hz PCM
+           const detectedRate = 24000;
+           finalBlob = createWavBlob(bytes, detectedRate, 1, 16, volumeBoost, clarity, warmth);
         }
 
         const url = URL.createObjectURL(finalBlob);
