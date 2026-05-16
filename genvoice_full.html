@@ -295,68 +295,6 @@
                 return validKeys.length > 0 ? validKeys[activeKeyIndex % validKeys.length] : null;
             };
 
-            const audioBufferToWav = (buffer) => {
-                const numOfChan = buffer.numberOfChannels;
-                const length = buffer.length * numOfChan * 2 + 44;
-                const bufferArr = new ArrayBuffer(length);
-                const view = new DataView(bufferArr);
-                const channels = [];
-                let i, sample, offset = 0, pos = 0;
-
-                const setUint32 = (data) => { view.setUint32(pos, data, true); pos += 4; };
-                const setUint16 = (data) => { view.setUint16(pos, data, true); pos += 2; };
-
-                setUint32(0x46464952); setUint32(length - 8); setUint32(0x45564157);
-                setUint32(0x20746d66); setUint32(16); setUint16(1); setUint16(numOfChan);
-                setUint32(buffer.sampleRate); setUint32(buffer.sampleRate * 2 * numOfChan);
-                setUint16(numOfChan * 2); setUint16(16); setUint32(0x61746164); setUint32(length - pos - 4);
-
-                for (i = 0; i < buffer.numberOfChannels; i++) channels.push(buffer.getChannelData(i));
-
-                while (pos < length) {
-                    for (i = 0; i < numOfChan; i++) {
-                        sample = Math.max(-1, Math.min(1, channels[i][offset]));
-                        sample = (sample < 0 ? sample * 0x8000 : sample * 0x7FFF);
-                        view.setInt16(pos, sample, true); pos += 2;
-                    }
-                    offset++;
-                }
-                return new Blob([bufferArr], { type: 'audio/wav' });
-            };
-
-            const enhanceAudio = async (wavBlob) => {
-                try {
-                    const arrayBuffer = await wavBlob.arrayBuffer();
-                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                    const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-                    const offlineCtx = new OfflineAudioContext(audioBuffer.numberOfChannels, audioBuffer.length, audioBuffer.sampleRate);
-                    const source = offlineCtx.createBufferSource();
-                    source.buffer = audioBuffer;
-
-                    const hpFilter = offlineCtx.createBiquadFilter();
-                    hpFilter.type = 'highpass'; hpFilter.frequency.value = 80;
-
-                    const clarityFilter = offlineCtx.createBiquadFilter();
-                    clarityFilter.type = 'highshelf'; clarityFilter.frequency.value = 2500; clarityFilter.gain.value = 3;
-
-                    const compressor = offlineCtx.createDynamicsCompressor();
-                    compressor.threshold.setValueAtTime(-24, offlineCtx.currentTime);
-                    compressor.knee.setValueAtTime(30, offlineCtx.currentTime);
-                    compressor.ratio.setValueAtTime(4, offlineCtx.currentTime);
-                    compressor.attack.setValueAtTime(0.003, offlineCtx.currentTime);
-                    compressor.release.setValueAtTime(0.25, offlineCtx.currentTime);
-
-                    source.connect(hpFilter); hpFilter.connect(clarityFilter); clarityFilter.connect(compressor); compressor.connect(offlineCtx.destination);
-                    source.start(0);
-                    const renderedBuffer = await offlineCtx.startRendering();
-                    await audioCtx.close();
-                    return audioBufferToWav(renderedBuffer);
-                } catch (err) {
-                    console.error("Enhancement failed", err);
-                    return wavBlob;
-                }
-            };
-
             const handleGenerate = async () => {
                 if (!text.trim()) return showStatus('Please enter some text', 'error');
                 const key = getValidKey();
@@ -413,7 +351,6 @@
 
                     setGenerationStep(4);
                     let finalBlob = createWavBlob(bytes, 24000, 1, 16);
-                    finalBlob = await enhanceAudio(finalBlob);
 
                     const url = URL.createObjectURL(finalBlob);
                     setAudioUrl(url);

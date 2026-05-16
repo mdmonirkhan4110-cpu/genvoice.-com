@@ -309,7 +309,7 @@ export default function App() {
       if (savedKey) return [savedKey];
     } catch (e) {}
     // Vite env variable check
-    const envKey = process.env.GEMINI_API_KEY || (typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_GEMINI_API_KEY : '');
+    const envKey = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.VITE_GEMINI_API_KEY : '';
     return envKey ? [envKey] : [''];
   });
   
@@ -581,7 +581,7 @@ export default function App() {
 
   const getValidKey = () => {
     const validKeys = apiKeys.filter(k => k.trim());
-    const sysKey = process.env.GEMINI_API_KEY || (typeof import.meta !== 'undefined' && (import.meta as any).env ? (import.meta as any).env.VITE_GEMINI_API_KEY : '');
+    const sysKey = import.meta.env.VITE_GEMINI_API_KEY;
     
     if (validKeys.length === 0) return sysKey || null;
     
@@ -596,107 +596,6 @@ export default function App() {
     }
     
     return currentKey;
-  };
-
-  const enhanceAudio = async (wavBlob: Blob): Promise<Blob> => {
-    try {
-      const arrayBuffer = await wavBlob.arrayBuffer();
-      const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
-      
-      const offlineCtx = new OfflineAudioContext(
-        audioBuffer.numberOfChannels,
-        audioBuffer.length,
-        audioBuffer.sampleRate
-      );
-
-      const source = offlineCtx.createBufferSource();
-      source.buffer = audioBuffer;
-
-      // 1. High Pass Filter: Remove low-end rumble (< 80Hz)
-      const hpFilter = offlineCtx.createBiquadFilter();
-      hpFilter.type = 'highpass';
-      hpFilter.frequency.value = 80;
-
-      // 2. Clarity EQ: Slight boost in the presence range (2kHz+)
-      const clarityFilter = offlineCtx.createBiquadFilter();
-      clarityFilter.type = 'highshelf';
-      clarityFilter.frequency.value = 2500;
-      clarityFilter.gain.value = 3;
-
-      // 3. Compressor: Professional radio-like evenness
-      const compressor = offlineCtx.createDynamicsCompressor();
-      compressor.threshold.setValueAtTime(-24, offlineCtx.currentTime);
-      compressor.knee.setValueAtTime(30, offlineCtx.currentTime);
-      compressor.ratio.setValueAtTime(4, offlineCtx.currentTime);
-      compressor.attack.setValueAtTime(0.003, offlineCtx.currentTime);
-      compressor.release.setValueAtTime(0.25, offlineCtx.currentTime);
-
-      // Connect nodes
-      source.connect(hpFilter);
-      hpFilter.connect(clarityFilter);
-      clarityFilter.connect(compressor);
-      compressor.connect(offlineCtx.destination);
-
-      source.start(0);
-      const renderedBuffer = await offlineCtx.startRendering();
-      
-      // Close context to free resources
-      await audioCtx.close();
-
-      // Convert AudioBuffer to WAV Blob
-      return audioBufferToWav(renderedBuffer);
-    } catch (err) {
-      console.error("Audio enhancement failed", err);
-      return wavBlob; // Fallback to original
-    }
-  };
-
-  // Helper to convert AudioBuffer to WAV
-  const audioBufferToWav = (buffer: AudioBuffer): Blob => {
-    const numOfChan = buffer.numberOfChannels;
-    const length = buffer.length * numOfChan * 2 + 44;
-    const bufferArr = new ArrayBuffer(length);
-    const view = new DataView(bufferArr);
-    const channels = [];
-    let i;
-    let sample;
-    let offset = 0;
-    let pos = 0;
-
-    // write WAVE header
-    const setUint32 = (data: number) => { view.setUint32(pos, data, true); pos += 4; };
-    const setUint16 = (data: number) => { view.setUint16(pos, data, true); pos += 2; };
-
-    setUint32(0x46464952); // "RIFF"
-    setUint32(length - 8); // file length - 8
-    setUint32(0x45564157); // "WAVE"
-    setUint32(0x20746d66); // "fmt "
-    setUint32(16);         // length of fmt chunk
-    setUint16(1);          // PCM format
-    setUint16(numOfChan);
-    setUint32(buffer.sampleRate);
-    setUint32(buffer.sampleRate * 2 * numOfChan);
-    setUint16(numOfChan * 2);
-    setUint16(16);         // bits per sample
-    setUint32(0x61746164); // "data"
-    setUint32(length - pos - 4); // chunk length
-
-    for (i = 0; i < buffer.numberOfChannels; i++) {
-      channels.push(buffer.getChannelData(i));
-    }
-
-    while (pos < length) {
-      for (i = 0; i < numOfChan; i++) {
-        sample = Math.max(-1, Math.min(1, channels[i][offset]));
-        sample = (sample < 0 ? sample * 0x8000 : sample * 0x7FFF);
-        view.setInt16(pos, sample, true);
-        pos += 2;
-      }
-      offset++;
-    }
-
-    return new Blob([bufferArr], { type: 'audio/wav' });
   };
 
   const handleGenerate = async () => {
@@ -825,11 +724,6 @@ export default function App() {
         } else {
            // Fallback to manually prepending WAV headers if it is raw PCM
            finalBlob = createWavBlob(bytes, 24000, 1, 16);
-        }
-
-        // Apply Built-in Enhancement System
-        if (finalBlob.type === 'audio/wav') {
-          finalBlob = await enhanceAudio(finalBlob);
         }
 
         const url = URL.createObjectURL(finalBlob);
